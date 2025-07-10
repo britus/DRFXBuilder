@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/icns/drfxbuilder.icns</file>
+        <file>assets/png/drfxbuilder.png</file>
+    </qresource>
+</RCC>
