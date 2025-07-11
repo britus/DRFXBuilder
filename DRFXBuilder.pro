@@ -6,7 +6,7 @@ QT += core gui widgets
 win32:TEMPLATE = vcapp
 else:TEMPLATE = app
 
-TARGET = drfxbuilder
+TARGET = DRFXBuilder
 
 win32:VERSION = 0.1.3.2 # major.minor.patch.build
 else:VERSION = 0.1.3    # major.minor.patch

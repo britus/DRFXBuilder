@@ -198,6 +198,7 @@ void MainWindow::on_pbSelectMacro_clicked()
     d.setDirectory(m_macroPath);
     d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Fusion macro file"));
     d.setOption(QFileDialog::Option::ReadOnly);
+    d.setNameFilters(QStringList() << "*.setting");
     d.setDefaultSuffix(".setting");
     d.exec();
 }
@@ -225,6 +226,7 @@ void MainWindow::on_pbSelectIcon_clicked()
     d.setDirectory(m_iconPath);
     d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Icon file"));
     d.setOption(QFileDialog::Option::ReadOnly);
+    d.setNameFilters(QStringList() << "*.png" << "*.*");
     d.setDefaultSuffix(".setting");
     d.exec();
 }
@@ -372,6 +374,7 @@ void MainWindow::on_pbImport_clicked()
         return;
     }
 
+    QString fname;
     QFileInfo info;
     TNodeData data;
     QTreeWidgetItem *root, *twi, *child, *comp, *prod;
@@ -411,13 +414,14 @@ void MainWindow::on_pbImport_clicked()
 
     // add macro file name
     info = QFileInfo(ui->edFusionMacro->text());
-    if (findName(ui->tvBundleStruct->topLevelItem(0), info.baseName())) {
+    fname = info.fileName();
+    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
         QMessageBox::critical(this,
                               qApp->applicationDisplayName(), //
-                              tr("Object '%1' already exist.").arg(info.baseName()));
+                              tr("Object '%1' already exist.").arg(fname));
         state |= 0x01;
     } else {
-        data = {FileItem, toHash(info.filePath()), info.filePath(), info.baseName()};
+        data = {FileItem, toHash(info.filePath()), info.filePath(), fname};
         child = new QTreeWidgetItem(twi, QTreeWidgetItem::Type);
         child->setData(0, Qt::UserRole, QVariant::fromValue(data));
         child->setData(0, Qt::DisplayRole, data.name);
@@ -426,13 +430,14 @@ void MainWindow::on_pbImport_clicked()
 
     // add icon file name
     info = QFileInfo(ui->edIconFile->text());
-    if (findName(ui->tvBundleStruct->topLevelItem(0), info.baseName())) {
+    fname = info.fileName();
+    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
         QMessageBox::critical(this,
                               qApp->applicationDisplayName(), //
-                              tr("Object '%1' already exist.").arg(info.baseName()));
+                              tr("Object '%1' already exist.").arg(fname));
         state |= 0x02;
     } else {
-        data = {FileItem, toHash(info.filePath()), info.filePath(), info.baseName()};
+        data = {FileItem, toHash(info.filePath()), info.filePath(), fname};
         child = new QTreeWidgetItem(twi, QTreeWidgetItem::Type);
         child->setData(0, Qt::UserRole, QVariant::fromValue(data));
         child->setData(0, Qt::DisplayRole, data.name);
@@ -715,11 +720,12 @@ inline QTreeWidgetItem *MainWindow::findName(QTreeWidgetItem *item, const QStrin
     QTreeWidgetItem *result = nullptr;
     for (int i = 0; i < item->childCount(); i++) {
         QTreeWidgetItem *child = item->child(i);
-        QVariant v = child->data(0, Qt::DisplayRole);
+        QVariant v = child->data(0, Qt::UserRole);
         if (v.isNull() || !v.isValid()) {
             continue;
         }
-        if (v.toString() == name) {
+        TNodeData nd = v.value<TNodeData>();
+        if (nd.path.contains(name)) {
             return child;
         }
         if (child->childCount() > 0) {
