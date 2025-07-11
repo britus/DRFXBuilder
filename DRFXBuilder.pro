@@ -1,5 +1,8 @@
 QT += core gui widgets
 
+# Quazip 3rd party
+#QT += compress
+
 win32:TEMPLATE = vcapp
 else:TEMPLATE = app
 
@@ -85,7 +88,24 @@ mac {
 	#QMAKE_BUNDLE_DATA += translations_de
 
 	icons.files = \
+		$$PWD/assets/icns/drfxbuilder_1024x1024.icns \
+		$$PWD/assets/icns/drfxbuilder_128x128.icns \
+		$$PWD/assets/icns/drfxbuilder_16x16.icns \
+		$$PWD/assets/icns/drfxbuilder_256x256.icns \
+		$$PWD/assets/icns/drfxbuilder_32x32.icns \
+		$$PWD/assets/icns/drfxbuilder_512x512.icns \
+		$$PWD/assets/icns/drfxbuilder_64x64.icns \
 		$$PWD/assets/icns/drfxbuilder.icns \
+		$$PWD/assets/drfxbuilder.iconset/icon_128x128.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_128x128@2x.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_16x16.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_16x16@2x.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_256x256.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_256x256@2x.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_32x32.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_32x32@2x.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_512x512.png \
+		$$PWD/assets/drfxbuilder.iconset/icon_512x512@2x.png \
 		$$PWD/assets/png/drfxbuilder.png
 	icons.path = Contents/Resources/
 	QMAKE_BUNDLE_DATA += icons
@@ -93,10 +113,10 @@ mac {
 	QMAKE_INFO_PLIST += \
 		$$PWD/Info.plist
 
-	info_plist.files = \
-		$$PWD/Info.plist
-	info_plist.path = Contents/
-	QMAKE_BUNDLE_DATA += info_plist
+	#info_plist.files = \
+	#	$$PWD/Info.plist
+	#info_plist.path = Contents/
+	#QMAKE_BUNDLE_DATA += info_plist
 
 	QMAKE_CODE_SIGN_ENTITLEMENTS=$$PWD/app.entitlements
 	QMAKE_CODE_SIGN_IDENTITY='Mac Developer'
@@ -118,21 +138,33 @@ windows {
 	INSTALLS += target
 }
 
+INCLUDEPATH += $$PWD/qzip/src/compress/
+QMAKE_INCDIR += /usr/local/include
+QMAKE_LIBDIR += /usr/local/lib
+QMAKE_LIBS += -lz
+
 SOURCES += \
-	main.cpp \
-	mainwindow.cpp
+	$$PWD/drfxbuilder.cpp \
+	$$PWD/main.cpp \
+	$$PWD/mainwindow.cpp \
+	$$PWD/qzip/src/compress/qzip.cpp
 
 HEADERS += \
-	mainwindow.h
+	$$PWD/drfxbuilder.h \
+	$$PWD/drfxtypes.h \
+	$$PWD/mainwindow.h \
+	$$PWD/qzip/src/compress/qtcompressglobal.h \
+	$$PWD/qzip/src/compress/qzipreader.h \
+	$$PWD/qzip/src/compress/qzipwriter.h
 
 FORMS += \
-	mainwindow.ui
+	$$PWD/mainwindow.ui
 
 TRANSLATIONS += \
-	DRFXBuilder_en_US.ts
+	$$PWD/DRFXBuilder_en_US.ts
 
 RESOURCES += \
-	DRFXBuilder.qrc
+	$$PWD/DRFXBuilder.qrc
 
 DISTFILES += \
 	LICENSE \

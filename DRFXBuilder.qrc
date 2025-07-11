@@ -2,5 +2,22 @@
     <qresource prefix="/">
         <file>assets/icns/drfxbuilder.icns</file>
         <file>assets/png/drfxbuilder.png</file>
+        <file>assets/drfxbuilder.iconset/icon_16x16.png</file>
+        <file>assets/drfxbuilder.iconset/icon_16x16@2x.png</file>
+        <file>assets/drfxbuilder.iconset/icon_32x32.png</file>
+        <file>assets/drfxbuilder.iconset/icon_32x32@2x.png</file>
+        <file>assets/drfxbuilder.iconset/icon_128x128.png</file>
+        <file>assets/drfxbuilder.iconset/icon_128x128@2x.png</file>
+        <file>assets/drfxbuilder.iconset/icon_256x256.png</file>
+        <file>assets/drfxbuilder.iconset/icon_256x256@2x.png</file>
+        <file>assets/drfxbuilder.iconset/icon_512x512.png</file>
+        <file>assets/drfxbuilder.iconset/icon_512x512@2x.png</file>
+        <file>assets/icns/drfxbuilder_16x16.icns</file>
+        <file>assets/icns/drfxbuilder_32x32.icns</file>
+        <file>assets/icns/drfxbuilder_64x64.icns</file>
+        <file>assets/icns/drfxbuilder_128x128.icns</file>
+        <file>assets/icns/drfxbuilder_256x256.icns</file>
+        <file>assets/icns/drfxbuilder_512x512.icns</file>
+        <file>assets/icns/drfxbuilder_1024x1024.icns</file>
     </qresource>
 </RCC>

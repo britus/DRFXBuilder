@@ -1,0 +1,8 @@
+[submodule "quazip"]
+	path = quazip
+	url = https://github.com/britus/quazip.git
+	branch = master
+[submodule "qzip"]
+	path = qzip
+	url = https://github.com/britus/qtcompress.git
+	branch = master

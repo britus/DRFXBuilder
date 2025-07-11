@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>716</width>
+    <height>545</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>EoF DRFX Builder</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="DRFXBuilder.qrc">
+    <normaloff>:/assets/drfxbuilder.iconset/icon_128x128.png</normaloff>:/assets/drfxbuilder.iconset/icon_128x128.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -462,6 +466,22 @@
                <property name="autoDefault">
                 <bool>true</bool>
                </property>
+               <property name="default">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pbBuildDRFX">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Create...</string>
+               </property>
+               <property name="autoDefault">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -479,7 +499,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Content</string>
+          <string>Product content</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
@@ -587,16 +607,6 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="pbBuildDRFX">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Build DRFX</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <spacer name="horizontalSpacer_2">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -635,7 +645,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>716</width>
      <height>24</height>
     </rect>
    </property>
@@ -651,8 +661,13 @@
   <tabstop>edProduct</tabstop>
   <tabstop>cbBundleNode</tabstop>
   <tabstop>pbImport</tabstop>
+  <tabstop>pbBuildDRFX</tabstop>
   <tabstop>tvBundleStruct</tabstop>
+  <tabstop>twNodeList</tabstop>
+  <tabstop>pbDelete</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="DRFXBuilder.qrc"/>
+ </resources>
  <connections/>
 </ui>

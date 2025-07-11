@@ -1,5 +1,6 @@
 #pragma once
 
+#include "drfxbuilder.h"
 #include <QComboBox>
 #include <QJsonObject>
 #include <QMainWindow>
@@ -18,26 +19,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    enum TNodeType {
-        Static,
-        Company,
-        Product,
-        FileItem,
-    };
-    Q_ENUM(TNodeType)
-
-    typedef struct
-    {
-        TNodeType type;
-        QString hash;
-        QString path;
-        QString name;
-    } TNodeData;
-
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
+    void onBuildError(DRFXBuilder *builder, const QString &);
+    void onBuildStarted(DRFXBuilder *builder);
+    void onBuildComplete(DRFXBuilder *builder, const QString &);
     void on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
     void on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
     void on_edFusionMacro_textEdited(const QString &arg1);
@@ -56,19 +44,18 @@ private:
     QSettings m_settings;
     QString m_macroPath;
     QString m_iconPath;
+    QString m_outputName;
 
 private:
     inline void postInitUi();
     inline void updateTargetInfo();
     inline void checkInputFields();
     inline void checkBlackmagic();
-    inline void cbxAddBundleItems(QTreeWidgetItem *item, const QString &prefix = "");
-    inline QTreeWidgetItem *findCompanyAndProduct(QTreeWidgetItem *item);
-    inline QTreeWidgetItem *findName(QTreeWidgetItem *item, const QString &name);
+    inline bool checkBundleContent(QTreeWidgetItem *node);
+    inline void cbxAddBundleItems(QTreeWidgetItem *node, const QString &prefix = "");
+    inline QTreeWidgetItem *findCompanyAndProduct(QTreeWidgetItem *node);
+    inline QTreeWidgetItem *findName(QTreeWidgetItem *node, const QString &name);
     inline void bundleStructToJson(QJsonObject &node, QTreeWidgetItem *item, const QString &prefix);
     inline void saveBundleStructure();
     inline bool loadBundleStructure();
 };
-
-Q_DECLARE_METATYPE(MainWindow::TNodeType);
-Q_DECLARE_METATYPE(MainWindow::TNodeData);
