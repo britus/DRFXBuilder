@@ -25,18 +25,18 @@ Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
 
 #ifdef Q_OS_MACOS
-#define FUSION_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define DAVINCI_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
+#define FUSION_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
+#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
 #endif
 
 #ifdef Q_OS_WINDOWS
-#define FUSION_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define DAVINCI_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
+#define FUSION_MACRO_PATH "TODO"
+#define DAVINCI_MACRO_PATH "TODO"
 #endif
 
 #ifdef Q_OS_LINUX
-#define FUSION_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define DAVINCI_MACRO_PATH "/Users/beschric/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
+#define FUSION_MACRO_PATH "TODO"
+#define DAVINCI_MACRO_PATH "TODO"
 #endif
 
 inline static QString configFile()
