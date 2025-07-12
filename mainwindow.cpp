@@ -113,16 +113,27 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(qApp->applicationDisplayName());
 
     ui->statusbar->setSizeGripEnabled(true);
-    ui->statusbar->showMessage(tr("Import Fusion macro file."), 5000);
+    ui->statusbar->showMessage(tr("%1 %2 Copyright (c) 2025 by EoF Software Labs") //
+                                   .arg(qApp->applicationDisplayName(), qApp->applicationVersion()),
+                               20000);
+
+    // center window on primary screen
+    QScreen *screen = qApp->primaryScreen();
+    int width = m_settings.value("window.width", geometry().width()).toUInt();
+    int hight = m_settings.value("window.height", geometry().height()).toUInt();
+    if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
+        uint centerX = screen->size().width() / 2 - width / 2;
+        uint centerY = screen->size().height() / 2 - hight / 2;
+        setGeometry(centerX, centerY, width, hight);
+    }
 
     QSplitter *splitter = new QSplitter(Qt::Horizontal, ui->centralwidget);
-    splitter->setSizes(QList<int>()                                      //
-                       << m_settings.value("splitter.left", 160).toInt() //
-                       << m_settings.value("splitter.right", 400).toInt());
+    //splitter->setSizes(QList<int>()                                      //
+    //                   << m_settings.value("splitter.left", 260).toInt() //
+    //                   << m_settings.value("splitter.right", 400).toInt());
     splitter->setHandleWidth(10);
     splitter->addWidget(ui->pnlBundle);
     splitter->addWidget(ui->pnlContent);
-    ui->centralwidget->layout()->addWidget(splitter);
     connect(splitter, &QSplitter::splitterMoved, this, [this](int pos, int index) {
         switch (index) {
             case 0: {
@@ -135,6 +146,7 @@ MainWindow::MainWindow(QWidget *parent)
             }
         }
     });
+    ui->centralwidget->layout()->addWidget(splitter);
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
         saveBundleStructure();
@@ -157,16 +169,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_installPath = m_settings.value("install.path", m_installPath).toString();
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
-
-    // center window on primary screen
-    QScreen *screen = qApp->primaryScreen();
-    int width = m_settings.value("window.width", geometry().width()).toUInt();
-    int hight = m_settings.value("window.height", geometry().height()).toUInt();
-    if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
-        uint centerX = screen->size().width() / 2 - width / 2;
-        uint centerY = screen->size().height() / 2 - hight / 2;
-        setGeometry(centerX, centerY, width, hight);
-    }
 
     // restore tree view first */
     loadBundleStructure();
