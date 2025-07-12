@@ -128,25 +128,19 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     QSplitter *splitter = new QSplitter(Qt::Horizontal, ui->centralwidget);
-    //splitter->setSizes(QList<int>()                                      //
-    //                   << m_settings.value("splitter.left", 260).toInt() //
-    //                   << m_settings.value("splitter.right", 400).toInt());
-    splitter->setHandleWidth(10);
-    splitter->addWidget(ui->pnlBundle);
-    splitter->addWidget(ui->pnlContent);
-    connect(splitter, &QSplitter::splitterMoved, this, [this](int pos, int index) {
-        switch (index) {
-            case 0: {
-                m_settings.setValue("splitter.left", pos);
-                return;
-            }
-            case 1: {
-                m_settings.setValue("splitter.right", pos);
-                return;
-            }
-        }
-    });
     ui->centralwidget->layout()->addWidget(splitter);
+    splitter->insertWidget(0, ui->pnlBundle);
+    splitter->insertWidget(1, ui->pnlContent);
+    splitter->setHandleWidth(10);
+
+    int spleft = m_settings.value("splitter.left", width / 2).toInt();
+    int spright = m_settings.value("splitter.right", width / 2).toInt();
+    splitter->setSizes(QList<int>() << spleft << spright);
+
+    connect(splitter, &QSplitter::splitterMoved, this, [this, splitter](int, int) {
+        m_settings.setValue("splitter.left", splitter->sizes().at(0));
+        m_settings.setValue("splitter.right", splitter->sizes().at(1));
+    });
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
         saveBundleStructure();
@@ -622,6 +616,7 @@ inline void MainWindow::postInitUi()
     ui->edProduct->setPlaceholderText(tr("Enter product name"));
     ui->edProduct->setText(m_settings.value("product").toString());
 
+    // fill target combobox
     int nodesel = m_settings.value("nodesel", 0).toInt();
     if (ui->tvBundleStruct->topLevelItemCount() != 0) {
         cbxAddBundleItems(ui->tvBundleStruct->topLevelItem(0));
@@ -631,17 +626,21 @@ inline void MainWindow::postInitUi()
         }
     }
 
+    // restore bundle */
+    loadBundleStructure();
+
+    // any content exist?
     if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
         ui->pbImport->setDefault(false);
         ui->pbBuildDRFX->setEnabled(true);
         ui->pbBuildDRFX->setDefault(true);
     }
 
+    // input field restored?
     checkInputFields();
-    checkOutputExist();
 
-    // restore bundle */
-    loadBundleStructure();
+    // already generated ?
+    checkOutputExist();
 }
 
 inline void MainWindow::updateTargetInfo()
