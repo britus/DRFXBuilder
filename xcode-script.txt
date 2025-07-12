@@ -1,0 +1,13 @@
+# Type a script or drag a script file from your workspace to insert its path.
+echo "--- INSTALL QT-PLUGINS ---"
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/platforms && cp -v ${QTDIR}/PlugIns/platforms/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/platforms
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/iconengines && cp -v ${QTDIR}/PlugIns/iconengines/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/iconengines
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/imageformats && cp -v ${QTDIR}/PlugIns/imageformats/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/imageformats
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/platforminputcontexts && cp -v ${QTDIR}/PlugIns/platforminputcontexts/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/platforminputcontexts
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/tls && cp -v ${QTDIR}/PlugIns/tls/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/tls
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/texttospeech && cp -v ${QTDIR}/PlugIns/texttospeech/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/texttospeech
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/styles && cp -v ${QTDIR}/PlugIns/styles/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/styles
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/renderplugins && cp -v ${QTDIR}/PlugIns/renderplugins/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/renderplugins
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/renderers && cp -v ${QTDIR}/PlugIns/renderers/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/renderers
+mkdir -p ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/generic && cp -v ${QTDIR}/PlugIns/generic/*.dylib ${SOURCE_ROOT}/Debug/${PLUGINS_FOLDER_PATH}/generic
+echo "--- Done ----"
