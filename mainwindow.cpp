@@ -152,10 +152,11 @@ MainWindow::MainWindow(QWidget *parent)
         //}
     });
 
+    m_appType = m_settings.value("app.type", 0).toUInt();
     m_outputName = m_settings.value("output.name", m_outputName).toString();
+    m_installPath = m_settings.value("install.path", m_installPath).toString();
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
-    m_installPath = m_settings.value("install.path", m_installPath).toString();
 
     // center window on primary screen
     QScreen *screen = qApp->primaryScreen();
@@ -701,7 +702,7 @@ inline void MainWindow::checkOutputExist()
 inline void MainWindow::checkBlackmagic()
 {
     // check which installed Fusion or Davinci or both
-    if (m_macroPath.isEmpty()) {
+    if (m_appType == 0) {
         QTimer::singleShot(50, this, [this] {
             const QIcon icon(":/assets/dfrxbuilder.iconset/icon_32x32.png");
             const QDir dbmf(homePath(FUSION_MACRO_PATH));
@@ -722,7 +723,7 @@ inline void MainWindow::checkBlackmagic()
             if ((flags & 0x03) == 0x03) {
                 QMessageBox mb(this);
                 mb.setTextFormat(Qt::TextFormat::PlainText);
-                mb.setText(tr("Blackmagic Davinci Resolve and Fusion found.\n" //
+                mb.setText(tr("Davinci Resolve and Fusion found.\n" //
                               "Please select which one to use."));
                 mb.setIconPixmap(icon.pixmap(32, 32));
                 mb.setStandardButtons(QMessageBox::Button::Ok |  //
@@ -731,17 +732,19 @@ inline void MainWindow::checkBlackmagic()
                 mb.setButtonText(QMessageBox::Button::Ok, tr("Davinci Resolve"));
                 mb.setButtonText(QMessageBox::Button::Yes, tr("Fusion"));
                 mb.setButtonText(QMessageBox::Button::Cancel, tr("Close"));
-                mb.setDefaultButton(QMessageBox::Button::Yes);
+                mb.setDefaultButton(QMessageBox::Button::Ok);
                 mb.setWindowTitle(qApp->applicationDisplayName());
                 switch (mb.exec()) {
                     case QMessageBox::Button::Yes: {
                         m_macroPath = dbmf.absolutePath();
                         m_installPath = dbif.absolutePath();
+                        m_appType = 1;
                         break;
                     }
                     case QMessageBox::Button::Ok: {
                         m_macroPath = dbmd.absolutePath();
                         m_installPath = dbid.absolutePath();
+                        m_appType = 2;
                         break;
                     }
                     default: {
@@ -762,6 +765,7 @@ inline void MainWindow::checkBlackmagic()
             }
             m_settings.setValue("macro.path", m_macroPath);
             m_settings.setValue("install.path", m_installPath);
+            m_settings.setValue("app.type", m_appType);
             postInitUi();
         });
     } else {

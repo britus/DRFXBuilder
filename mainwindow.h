@@ -40,13 +40,9 @@ private slots:
     void on_pbBuildDRFX_clicked();
     void on_pbInstall_clicked();
     void on_pbNewBundle_clicked();
-
     void on_edFusionMacro_textChanged(const QString &arg1);
-
     void on_edIconFile_textChanged(const QString &arg1);
-
     void on_edCompany_textChanged(const QString &arg1);
-
     void on_edProduct_textChanged(const QString &arg1);
 
 private:
@@ -56,6 +52,7 @@ private:
     QString m_iconPath;
     QString m_outputName;
     QString m_installPath;
+    quint8 m_appType;
 
 private:
     inline void postInitUi();
