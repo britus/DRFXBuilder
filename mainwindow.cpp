@@ -176,10 +176,6 @@ MainWindow::~MainWindow()
 void MainWindow::on_edFusionMacro_textChanged(const QString &value)
 {
     ui->edFusionMacro->setStatusTip(shortenText(value, 80));
-}
-
-void MainWindow::on_edFusionMacro_textEdited(const QString &value)
-{
     const QFileInfo fi(value);
     m_macroPath = fi.absolutePath();
     m_settings.setValue("macro.file", value);
@@ -188,13 +184,14 @@ void MainWindow::on_edFusionMacro_textEdited(const QString &value)
     updateTargetInfo();
 }
 
+void MainWindow::on_edFusionMacro_textEdited(const QString &value)
+{
+    on_edFusionMacro_textChanged(value);
+}
+
 void MainWindow::on_edIconFile_textChanged(const QString &value)
 {
     ui->edIconFile->setStatusTip(shortenText(value, 80));
-}
-
-void MainWindow::on_edIconFile_textEdited(const QString &value)
-{
     const QFileInfo fi(value);
     m_iconPath = fi.absolutePath();
     m_settings.setValue("icon.file", value);
@@ -203,28 +200,33 @@ void MainWindow::on_edIconFile_textEdited(const QString &value)
     updateTargetInfo();
 }
 
-void MainWindow::on_edCompany_textChanged(const QString &)
+void MainWindow::on_edIconFile_textEdited(const QString &value)
 {
-    //ui->edCompany->setStatusTip(value);
+    on_edIconFile_textChanged(value);
 }
 
-void MainWindow::on_edCompany_textEdited(const QString &value)
+void MainWindow::on_edCompany_textChanged(const QString &value)
 {
     m_settings.setValue("company", value);
     checkInputFields();
     updateTargetInfo();
 }
 
-void MainWindow::on_edProduct_textChanged(const QString &)
+void MainWindow::on_edCompany_textEdited(const QString &value)
 {
-    //ui->edProduct->setStatusTip(value);
+    on_edCompany_textChanged(value);
 }
 
-void MainWindow::on_edProduct_textEdited(const QString &value)
+void MainWindow::on_edProduct_textChanged(const QString &value)
 {
     m_settings.setValue("product", value);
     checkInputFields();
     updateTargetInfo();
+}
+
+void MainWindow::on_edProduct_textEdited(const QString &value)
+{
+    on_edProduct_textChanged(value);
 }
 
 void MainWindow::on_cbBundleNode_activated(int index)
@@ -233,114 +235,44 @@ void MainWindow::on_cbBundleNode_activated(int index)
     if (v.isNull() || !v.isValid()) {
         return;
     }
-
     m_settings.setValue("nodesel", index);
+    updateTargetInfo();
+}
+
+void MainWindow::on_cbBundleNode_currentIndexChanged(int)
+{
     updateTargetInfo();
 }
 
 void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
-    // sync combobox
-    for (int i = 0; i < ui->cbBundleNode->count(); i++) {
-        const QVariant v = ui->cbBundleNode->itemData(i, Qt::UserRole);
-        if (v.isNull() || !v.isValid()) {
-            continue;
-        }
-        QTreeWidgetItem *twi;
-        if (!(twi = v.value<QTreeWidgetItem *>())) {
-            continue;
-        }
-        if (current == twi) {
-            ui->cbBundleNode->setCurrentIndex(i);
-            break; // fini loop
-        }
-    }
-
-    // fill table view or select or cleanup
-
-    const QVariant title = current->data(0, Qt::DisplayRole);
-    if (title.isNull() || !title.isValid()) {
+    const QVariant v = current->data(0, Qt::ItemDataRole::UserRole);
+    if (v.isNull() || !v.isValid()) {
         return;
     }
-    const QVariant data = current->data(0, Qt::ItemDataRole::UserRole);
-    if (data.isNull() || !data.isValid()) {
-        return;
-    }
-
-    const TNodeData nd = data.value<TNodeData>();
+    const TNodeData nd = v.value<TNodeData>();
     switch (nd.type) {
         case TNodeType::Company: {
             ui->edCompany->setText(nd.name);
+            cleanupTableView();
             break;
         }
         // add to table view if product node
         case TNodeType::Product: {
             ui->edProduct->setText(nd.name);
-            // reset table view
-            while (ui->twNodeList->rowCount() > 0) {
-                QTableWidgetItem *a1 = ui->twNodeList->takeItem(0, 0);
-                QTableWidgetItem *a2 = ui->twNodeList->takeItem(0, 1);
-                ui->twNodeList->removeRow(0);
-                delete a1;
-                delete a2;
-            }
-            // add items from tree view
-            for (int i = 0; i < current->childCount(); i++) {
-                QTreeWidgetItem *child = current->child(i);
-                const QVariant data = child->data(0, Qt::ItemDataRole::UserRole);
-                if (data.isNull() || !data.isValid()) {
-                    continue;
-                }
-                const TNodeData nd = data.value<TNodeData>();
-                if (nd.type != TNodeType::FileItem) {
-                    continue;
-                }
-
-                // add row
-                ui->twNodeList->setRowCount(ui->twNodeList->rowCount() + 1);
-
-                // assing name column
-                QTableWidgetItem *item;
-                item = new QTableWidgetItem(QTableWidgetItem::Type);
-                item->setData(Qt::UserRole, QVariant::fromValue(nd));
-                item->setData(Qt::DisplayRole, nd.name);
-                ui->twNodeList->setItem(i, 0, item);
-
-                // assing path column
-                item = new QTableWidgetItem(QTableWidgetItem::Type);
-                item->setData(Qt::UserRole, QVariant::fromValue(child));
-                item->setData(Qt::DisplayRole, nd.path);
-                ui->twNodeList->setItem(i, 1, item);
-            }
-            ui->pbDelete->setEnabled(false);
+            fillTableView(current);
             break;
         }
         // select item in table view
         case TNodeType::FileItem: {
-            for (int i = 0; i < ui->twNodeList->rowCount(); i++) {
-                QTableWidgetItem *item;
-                if ((item = ui->twNodeList->item(i, 1))) {
-                    const QVariant data = item->data(Qt::ItemDataRole::UserRole);
-                    if (data.isNull() || !data.isValid()) {
-                        return;
-                    }
-                    if (data.value<QTreeWidgetItem *>() == current) {
-                        ui->twNodeList->setCurrentItem(item);
-                    }
-                }
-            }
+            fillTableView(current->parent());
+            selectTableRow(current);
             break;
         }
         // cleanup table
         default: {
-            ui->pbDelete->setEnabled(false);
-            while (ui->twNodeList->rowCount() > 0) {
-                QTableWidgetItem *a1 = ui->twNodeList->takeItem(0, 0);
-                QTableWidgetItem *a2 = ui->twNodeList->takeItem(0, 1);
-                ui->twNodeList->removeRow(0);
-                delete a1;
-                delete a2;
-            }
+            selectComboBoxItem(current);
+            cleanupTableView();
             break;
         }
     }
@@ -349,6 +281,11 @@ void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, 
 // select node in tree view
 void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *)
 {
+    // on delete rows from table view, parameter can be NULL
+    if (!current) {
+        return;
+    }
+
     const QVariant data = current->data(Qt::ItemDataRole::UserRole);
     if (data.isNull() || !data.isValid()) {
         return;
@@ -365,19 +302,42 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
         }
         case TNodeType::FileItem: {
             QTreeWidgetItem *twi;
-            if (!(twi = findName(ui->tvBundleStruct->topLevelItem(0), nd.name))) {
-                ui->pbDelete->setEnabled(false);
-                return;
+            // iterate overall treeview
+            if ((twi = findNodeByHash(ui->tvBundleStruct->topLevelItem(0), nd.hash))) {
+                ui->tvBundleStruct->setCurrentItem(twi);
             }
-
-            ui->pbDelete->setEnabled(true);
-            ui->tvBundleStruct->setCurrentItem(twi);
             break;
         }
         default: {
             break;
         }
     }
+}
+
+void MainWindow::on_twNodeList_itemClicked(QTableWidgetItem *item)
+{
+    QTreeWidgetItem *twi;
+    bool enabled = false;
+
+    QVariant v = item->data(Qt::ItemDataRole::UserRole);
+    if (!v.isNull() && v.isValid()) {
+        switch (ui->twNodeList->column(item)) {
+            case 0: {
+                enabled = v.value<TNodeData>().type == TNodeType::FileItem;
+                break;
+            }
+            case 1: {
+                if ((twi = v.value<QTreeWidgetItem *>())) {
+                    v = twi->data(0, Qt::ItemDataRole::UserRole);
+                    if (!v.isNull() && v.isValid()) {
+                        enabled = v.value<TNodeData>().type == TNodeType::FileItem;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    ui->pbDelete->setEnabled(enabled);
 }
 
 void MainWindow::on_pbNewBundle_clicked()
@@ -466,23 +426,38 @@ void MainWindow::on_pbImport_clicked()
 // select node in tree view
 void MainWindow::on_pbDelete_clicked()
 {
+    QTreeWidgetItem *twi = nullptr;
+    QTreeWidgetItem *parent = nullptr;
     QTableWidgetItem *item = ui->twNodeList->currentItem();
-    const QVariant title = item->data(Qt::DisplayRole);
-    if (title.isNull() || !title.isValid()) {
-        return;
+    QVariant v = item->data(Qt::ItemDataRole::UserRole);
+    if (!v.isNull() && v.isValid()) {
+        switch (ui->twNodeList->column(item)) {
+            case 0: {
+                const TNodeData nd = v.value<TNodeData>();
+                twi = findNodeByHash(ui->tvBundleStruct->topLevelItem(0), nd.hash);
+                break;
+            }
+            case 1: {
+                twi = v.value<QTreeWidgetItem *>();
+                break;
+            }
+        }
     }
-    const QVariant data = item->data(Qt::ItemDataRole::UserRole);
-    if (data.isNull() || !data.isValid()) {
-        return;
-    }
-    TNodeData nd = data.value<TNodeData>();
-    if (nd.type != TNodeType::FileItem) {
-        return;
-    }
-    if (QMessageBox::question(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Do you want to delete object: %1").arg(title.toString()))) {
-        //TODO: delete tree and table items
+
+    if (twi) {
+        if (QMessageBox::question(this,
+                                  qApp->applicationDisplayName(), //
+                                  tr("Do you want to delete object: %1").arg(twi->text(0)))) {
+            parent = twi->parent();
+            parent->removeChild(twi);
+            delete twi;
+            int row = ui->twNodeList->row(item);
+            ui->twNodeList->removeRow(row);
+            // check BUG of QT: will not remove always. we call cleanup
+            if (ui->twNodeList->rowCount() > parent->childCount()) {
+                cleanupTableView();
+            }
+        }
     }
 }
 
@@ -645,13 +620,13 @@ inline void MainWindow::postInitUi()
 
 inline void MainWindow::updateTargetInfo()
 {
-    //QVariant v = ui->cbBundleNode->currentData(Qt::UserRole);
-    //if (v.isNull() || !v.isValid()) {
-    //    return;
-    //}
     QString text = ui->cbBundleNode->currentText();
-    text = text.append("/").append(ui->edCompany->text());
-    text = text.append("/").append(ui->edProduct->text());
+    if (!ui->edCompany->text().isEmpty()) {
+        text = text.append("/").append(ui->edCompany->text());
+    }
+    if (!ui->edProduct->text().isEmpty()) {
+        text = text.append("/").append(ui->edProduct->text());
+    }
     ui->txTargetPath->setText(text);
 }
 
@@ -806,21 +781,22 @@ inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
     return result;
 }
 
-inline QTreeWidgetItem *MainWindow::findName(QTreeWidgetItem *item, const QString &name)
+inline QTreeWidgetItem *MainWindow::findNodeByHash(QTreeWidgetItem *item, const QString &hash)
 {
     QTreeWidgetItem *result = nullptr;
     for (int i = 0; i < item->childCount(); i++) {
         QTreeWidgetItem *child = item->child(i);
-        QVariant v = child->data(0, Qt::UserRole);
+        const QVariant v = child->data(0, Qt::UserRole);
         if (v.isNull() || !v.isValid()) {
             continue;
         }
-        TNodeData nd = v.value<TNodeData>();
-        if (nd.path.contains(name) || nd.name == name) {
+        const TNodeData nd = v.value<TNodeData>();
+        const QString _hash = toHash(nd.path);
+        if (_hash == hash) {
             return child;
         }
         if (child->childCount() > 0) {
-            result = findName(child, name);
+            result = findNodeByHash(child, hash);
             if (result) {
                 return result;
             }
@@ -881,7 +857,7 @@ inline int MainWindow::addFileNode(QTreeWidgetItem *node, int errorBits, const Q
     const TNodeData data = {TNodeType::FileItem, toHash(info.filePath()), info.filePath(), fname};
     QTreeWidgetItem *child;
 
-    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
+    if (findNodeByHash(ui->tvBundleStruct->topLevelItem(0), data.hash)) {
         QMessageBox::critical(this,
                               qApp->applicationDisplayName(), //
                               tr("Object '%1' already exist.").arg(fname));
@@ -908,13 +884,13 @@ inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
                               tr("Items below 'Edit' node are not allowed."));
     }
 
-    if (!(comp = findName(root, ui->edCompany->text()))) {
-        _path += "/" + ui->edCompany->text();
+    _path += "/" + ui->edCompany->text();
+    if (!(comp = findNodeByHash(root, toHash(_path)))) {
         comp = addCompanyNode(root, ui->edCompany->text(), _path);
         state = 0xe0;
     }
-    if (!(child = findName(comp, ui->edProduct->text()))) {
-        _path += "/" + ui->edProduct->text();
+    _path += "/" + ui->edProduct->text();
+    if (!(child = findNodeByHash(comp, toHash(_path)))) {
         child = addProductNode(comp, ui->edProduct->text(), _path);
         state = 0xe0;
     }
@@ -982,7 +958,7 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
         const QString key = QStringLiteral("%1/%2").arg(ndChild.type).arg(hash);
 
         QJsonObject jo;
-        jo["node.parent"] = ndParent.path;
+        jo["node.parent"] = ndParent.hash;
         //jo["data.hash"] = QJsonValue(hash);
         jo["node.type"] = QJsonValue(ndChild.type);
         jo["data.name"] = QJsonValue(ndChild.name);
@@ -1015,8 +991,6 @@ inline bool MainWindow::loadBundleStructure()
         return false;
     }
 
-    QTreeWidgetItem *comp = nullptr;
-    QTreeWidgetItem *prod = nullptr;
     QTreeWidgetItem *parent = nullptr;
     QTreeWidgetItem *root = ui->tvBundleStruct->topLevelItem(0);
     const QStringList keys = jroot.keys();
@@ -1049,26 +1023,27 @@ inline bool MainWindow::loadBundleStructure()
 
         switch (nodeType) {
             case TNodeType::Company: {
-                if ((parent = findName(root, nodeParent))) {
-                    if (!findName(parent, nodePath)) {
-                        comp = addCompanyNode(parent, nodeName, nodePath);
+                if ((parent = findNodeByHash(root, nodeParent))) {
+                    if (!findNodeByHash(parent, toHash(nodePath))) {
+                        addCompanyNode(parent, nodeName, nodePath);
                     }
                 }
                 break;
             }
             case TNodeType::Product: {
-                if ((parent = findName(root, nodeParent))) {
-                    if (!findName(parent, nodePath)) {
-                        prod = addProductNode(parent, nodeName, nodePath);
+                if ((parent = findNodeByHash(root, nodeParent))) {
+                    if (!findNodeByHash(parent, toHash(nodePath))) {
+                        addProductNode(parent, nodeName, nodePath);
                     }
                 }
                 break;
             }
             case TNodeType::FileItem: {
-                if (comp && prod) {
-                    int state = addFileNode(prod, 0x04, nodePath);
-                    if (state != 0) {
-                        QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Object '%1' already exist.").arg(nodeName));
+                if ((parent = findNodeByHash(root, nodeParent))) {
+                    if (addFileNode(parent, 0x04, nodePath) != 0) {
+                        QMessageBox::critical(this,
+                                              qApp->applicationDisplayName(), //
+                                              tr("Object '%1' already exist.").arg(nodeName));
                         return false;
                     }
                 }
@@ -1081,6 +1056,88 @@ inline bool MainWindow::loadBundleStructure()
         }
     }
     return true;
+}
+
+// select combobox item by given tree node
+inline void MainWindow::selectComboBoxItem(QTreeWidgetItem *node)
+{
+    for (int i = 0; i < ui->cbBundleNode->count(); i++) {
+        const QVariant v = ui->cbBundleNode->itemData(i, Qt::UserRole);
+        if (v.isNull() || !v.isValid()) {
+            continue;
+        }
+        if (node == v.value<QTreeWidgetItem *>()) {
+            ui->cbBundleNode->setCurrentIndex(i);
+            break; // fini loop
+        }
+    }
+}
+
+// select table row by given tree node
+inline void MainWindow::selectTableRow(QTreeWidgetItem *node)
+{
+    QTableWidgetItem *item;
+    for (int i = 0; i < ui->twNodeList->rowCount(); i++) {
+        // column 1 holds ptr to node
+        if ((item = ui->twNodeList->item(i, 1))) {
+            const QVariant v = item->data(Qt::UserRole);
+            if (v.isNull() || !v.isValid()) {
+                continue;
+            }
+            if (v.value<QTreeWidgetItem *>() == node) {
+                ui->twNodeList->setCurrentItem(item);
+            }
+        }
+    }
+}
+
+// add file items from treeview
+inline void MainWindow::fillTableView(QTreeWidgetItem *node)
+{
+    // cleanup first
+    cleanupTableView();
+
+    // add items from tree view
+    for (int i = 0; i < node->childCount(); i++) {
+        QTreeWidgetItem *child = node->child(i);
+        const QVariant data = child->data(0, Qt::ItemDataRole::UserRole);
+        if (data.isNull() || !data.isValid()) {
+            continue;
+        }
+        const TNodeData nd = data.value<TNodeData>();
+        if (nd.type != TNodeType::FileItem) {
+            continue;
+        }
+
+        // add row
+        ui->twNodeList->setRowCount(ui->twNodeList->rowCount() + 1);
+
+        // assing name column
+        QTableWidgetItem *item;
+        item = new QTableWidgetItem(QTableWidgetItem::Type);
+        item->setData(Qt::UserRole, QVariant::fromValue(nd));
+        item->setData(Qt::DisplayRole, nd.name);
+        ui->twNodeList->setItem(i, 0, item);
+
+        // assing path column
+        item = new QTableWidgetItem(QTableWidgetItem::Type);
+        item->setData(Qt::UserRole, QVariant::fromValue(child));
+        item->setData(Qt::DisplayRole, nd.path);
+        ui->twNodeList->setItem(i, 1, item);
+    }
+}
+
+// delete all rows in table view
+inline void MainWindow::cleanupTableView()
+{
+    while (ui->twNodeList->rowCount() > 0) {
+        QTableWidgetItem *a1 = ui->twNodeList->takeItem(0, 0);
+        QTableWidgetItem *a2 = ui->twNodeList->takeItem(0, 1);
+        ui->twNodeList->removeRow(0);
+        delete a1;
+        delete a2;
+    }
+    ui->pbDelete->setEnabled(false);
 }
 
 inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)

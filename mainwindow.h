@@ -44,6 +44,9 @@ private slots:
     void on_edIconFile_textChanged(const QString &arg1);
     void on_edCompany_textChanged(const QString &arg1);
     void on_edProduct_textChanged(const QString &arg1);
+    void on_twNodeList_itemClicked(QTableWidgetItem *item);
+
+    void on_cbBundleNode_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;
@@ -66,9 +69,13 @@ private:
     inline int addFileNode(QTreeWidgetItem *node, int errorBits, const QString &fileName);
     inline bool checkBundleContent(QTreeWidgetItem *node);
     inline void cbxAddBundleItems(QTreeWidgetItem *node, const QString &prefix = "");
-    inline QTreeWidgetItem *findName(QTreeWidgetItem *node, const QString &name);
+    inline QTreeWidgetItem *findNodeByHash(QTreeWidgetItem *node, const QString &hash);
     inline void bundleToJson(QJsonObject &node, QTreeWidgetItem *item);
     inline void saveBundleStructure();
     inline bool loadBundleStructure();
+    inline void selectComboBoxItem(QTreeWidgetItem *node);
     inline void resetBundleStructure(QTreeWidgetItem *node);
+    inline void selectTableRow(QTreeWidgetItem *node);
+    inline void fillTableView(QTreeWidgetItem *node);
+    inline void cleanupTableView();
 };
