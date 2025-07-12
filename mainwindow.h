@@ -60,11 +60,14 @@ private:
     inline void checkInputFields();
     inline void checkBlackmagic();
     inline void checkOutputExist();
+    inline void addToNode(const QString &path, QTreeWidgetItem *root);
+    inline QTreeWidgetItem *addCompanyNode(QTreeWidgetItem *node, const QString &name, const QString &path);
+    inline QTreeWidgetItem *addProductNode(QTreeWidgetItem *node, const QString &name, const QString &path);
+    inline int addFileNode(QTreeWidgetItem *node, int errorBits, const QString &fileName);
     inline bool checkBundleContent(QTreeWidgetItem *node);
     inline void cbxAddBundleItems(QTreeWidgetItem *node, const QString &prefix = "");
-    inline QTreeWidgetItem *findCompanyAndProduct(QTreeWidgetItem *node);
     inline QTreeWidgetItem *findName(QTreeWidgetItem *node, const QString &name);
-    inline void bundleStructToJson(QJsonObject &node, QTreeWidgetItem *item, const QString &prefix);
+    inline void bundleToJson(QJsonObject &node, QTreeWidgetItem *item);
     inline void saveBundleStructure();
     inline bool loadBundleStructure();
     inline void resetBundleStructure(QTreeWidgetItem *node);

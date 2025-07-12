@@ -170,9 +170,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
 
-    // restore tree view first */
-    loadBundleStructure();
-
     // async update ui fields
     checkBlackmagic();
 }
@@ -278,8 +275,13 @@ void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, 
 
     const TNodeData nd = data.value<TNodeData>();
     switch (nd.type) {
+        case TNodeType::Company: {
+            ui->edCompany->setText(nd.name);
+            break;
+        }
         // add to table view if product node
-        case Product: {
+        case TNodeType::Product: {
+            ui->edProduct->setText(nd.name);
             // reset table view
             while (ui->twNodeList->rowCount() > 0) {
                 QTableWidgetItem *a1 = ui->twNodeList->takeItem(0, 0);
@@ -296,7 +298,7 @@ void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, 
                     continue;
                 }
                 const TNodeData nd = data.value<TNodeData>();
-                if (nd.type != FileItem) {
+                if (nd.type != TNodeType::FileItem) {
                     continue;
                 }
 
@@ -320,7 +322,7 @@ void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, 
             break;
         }
         // select item in table view
-        case FileItem: {
+        case TNodeType::FileItem: {
             for (int i = 0; i < ui->twNodeList->rowCount(); i++) {
                 QTableWidgetItem *item;
                 if ((item = ui->twNodeList->item(i, 1))) {
@@ -358,17 +360,30 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
         return;
     }
     const TNodeData nd = data.value<TNodeData>();
-    if (nd.type != FileItem) {
-        return;
-    }
-    QTreeWidgetItem *twi;
-    if (!(twi = findName(ui->tvBundleStruct->topLevelItem(0), nd.name))) {
-        ui->pbDelete->setEnabled(false);
-        return;
-    }
+    switch (nd.type) {
+        case TNodeType::Company: {
+            ui->edCompany->setText(nd.name);
+            break;
+        }
+        case TNodeType::Product: {
+            ui->edProduct->setText(nd.name);
+            break;
+        }
+        case TNodeType::FileItem: {
+            QTreeWidgetItem *twi;
+            if (!(twi = findName(ui->tvBundleStruct->topLevelItem(0), nd.name))) {
+                ui->pbDelete->setEnabled(false);
+                return;
+            }
 
-    ui->pbDelete->setEnabled(true);
-    ui->tvBundleStruct->setCurrentItem(twi);
+            ui->pbDelete->setEnabled(true);
+            ui->tvBundleStruct->setCurrentItem(twi);
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
 
 void MainWindow::on_pbNewBundle_clicked()
@@ -446,90 +461,12 @@ void MainWindow::on_pbImport_clicked()
         return;
     }
 
-    QString fname;
-    QFileInfo info;
-    TNodeData data;
-    QTreeWidgetItem *root, *twi, *child, *comp, *prod;
-    int state = 0;
-
-    if (!(root = v.value<QTreeWidgetItem *>())) {
+    QTreeWidgetItem *node;
+    if (!(node = v.value<QTreeWidgetItem *>())) {
         return;
     }
-    if (root == ui->tvBundleStruct->topLevelItem(0)) {
-        QMessageBox::critical(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Items below 'Edit' node are not allowed."));
-    }
 
-    if (!(child = findCompanyAndProduct(root))) {
-        // add company node
-        path = path + "/" + ui->edCompany->text();
-        data = {Company, toHash(path), path, ui->edCompany->text()};
-        comp = new QTreeWidgetItem(root, QTreeWidgetItem::Type);
-        comp->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
-        comp->setData(0, Qt::UserRole, QVariant::fromValue(data));
-        root->addChild(comp);
-
-        // add product node as child of company
-        path = path + "/" + ui->edProduct->text();
-        data = {Product, toHash(path), path, ui->edProduct->text()};
-        prod = new QTreeWidgetItem(comp, QTreeWidgetItem::Type);
-        prod->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
-        prod->setData(0, Qt::UserRole, QVariant::fromValue(data));
-        comp->addChild(prod);
-        twi = prod;
-        // new company and product tree
-        state = 0xf0;
-    } else {
-        twi = child;
-    }
-
-    // add macro file name
-    info = QFileInfo(ui->edFusionMacro->text());
-    fname = info.fileName();
-    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
-        QMessageBox::critical(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Object '%1' already exist.").arg(fname));
-        state |= 0x01;
-    } else {
-        data = {FileItem, toHash(info.filePath()), info.filePath(), fname};
-        child = new QTreeWidgetItem(twi, QTreeWidgetItem::Type);
-        child->setData(0, Qt::UserRole, QVariant::fromValue(data));
-        child->setData(0, Qt::DisplayRole, data.name);
-        twi->addChild(child);
-    }
-
-    // add icon file name
-    info = QFileInfo(ui->edIconFile->text());
-    fname = info.fileName();
-    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
-        QMessageBox::critical(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Object '%1' already exist.").arg(fname));
-        state |= 0x02;
-    } else {
-        data = {FileItem, toHash(info.filePath()), info.filePath(), fname};
-        child = new QTreeWidgetItem(twi, QTreeWidgetItem::Type);
-        child->setData(0, Qt::UserRole, QVariant::fromValue(data));
-        child->setData(0, Qt::DisplayRole, data.name);
-        twi->addChild(child);
-    }
-
-    if ((state & 0x01) && (state & 0x02) && (state & 0xf0)) {
-        comp->removeChild(prod);
-        delete prod;
-        root->removeChild(comp);
-        delete comp;
-    } else {
-        ui->statusbar->showMessage(tr("Fusion added to bundle."), 5000);
-    }
-
-    if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
-        ui->pbBuildDRFX->setEnabled(true);
-        ui->pbBuildDRFX->setDefault(true);
-        ui->pbImport->setDefault(false);
-    }
+    addToNode(path, node);
 }
 
 // select node in tree view
@@ -545,7 +482,7 @@ void MainWindow::on_pbDelete_clicked()
         return;
     }
     TNodeData nd = data.value<TNodeData>();
-    if (nd.type != FileItem) {
+    if (nd.type != TNodeType::FileItem) {
         return;
     }
     if (QMessageBox::question(this,
@@ -648,6 +585,31 @@ void MainWindow::on_pbInstall_clicked()
         [](DRFXProgressDialog *p) { p->deleteLater(); });
 }
 
+void MainWindow::onBuildError(DRFXBuilder *builder, const QString &message)
+{
+    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
+    ui->pbBuildDRFX->setEnabled(true);
+    builder->disconnect(this);
+    builder->deleteLater();
+}
+
+void MainWindow::onBuildStarted(DRFXBuilder *)
+{
+    ui->pbBuildDRFX->setEnabled(false);
+}
+
+void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
+{
+    QMessageBox::information(this,
+                             qApp->applicationDisplayName(), //
+                             tr("Bundle file '%1' successfully created.").arg(fileName));
+    ui->pbBuildDRFX->setEnabled(true);
+    builder->disconnect(this);
+    builder->deleteLater();
+    m_outputName = fileName;
+    checkOutputExist();
+}
+
 inline void MainWindow::postInitUi()
 {
     ui->tvBundleStruct->expandAll();
@@ -669,13 +631,17 @@ inline void MainWindow::postInitUi()
         }
     }
 
-    checkInputFields();
     if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
         ui->pbImport->setDefault(false);
         ui->pbBuildDRFX->setEnabled(true);
         ui->pbBuildDRFX->setDefault(true);
     }
+
+    checkInputFields();
     checkOutputExist();
+
+    // restore bundle */
+    loadBundleStructure();
 }
 
 inline void MainWindow::updateTargetInfo()
@@ -828,7 +794,7 @@ inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
                 continue;
             }
             const TNodeData nd = data.value<TNodeData>();
-            if (nd.type == Product) {
+            if (nd.type == TNodeType::Product) {
                 result = true;
                 break;
             }
@@ -836,25 +802,6 @@ inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
                 result = true;
                 break;
             }
-        }
-    }
-    return result;
-}
-
-inline QTreeWidgetItem *MainWindow::findCompanyAndProduct(QTreeWidgetItem *node)
-{
-    QTreeWidgetItem *result = nullptr;
-    for (int i = 0; i < node->childCount(); i++) {
-        QTreeWidgetItem *child = node->child(i);
-        QVariant v = child->data(0, Qt::DisplayRole);
-        if (v.isNull() || !v.isValid()) {
-            continue;
-        }
-        if (v.toString() == ui->edProduct->text()) {
-            return child;
-        }
-        if (v.toString() == ui->edCompany->text()) {
-            result = findCompanyAndProduct(child);
         }
     }
     return result;
@@ -870,7 +817,7 @@ inline QTreeWidgetItem *MainWindow::findName(QTreeWidgetItem *item, const QStrin
             continue;
         }
         TNodeData nd = v.value<TNodeData>();
-        if (nd.path.contains(name)) {
+        if (nd.path.contains(name) || nd.name == name) {
             return child;
         }
         if (child->childCount() > 0) {
@@ -896,7 +843,7 @@ inline void MainWindow::saveBundleStructure()
     }
 
     QJsonObject root;
-    bundleStructToJson(root, ui->tvBundleStruct->topLevelItem(0), "");
+    bundleToJson(root, ui->tvBundleStruct->topLevelItem(0));
 
     if (!root.isEmpty()) {
         const QJsonDocument jdoc(root);
@@ -907,58 +854,233 @@ inline void MainWindow::saveBundleStructure()
     }
 }
 
-inline void MainWindow::bundleStructToJson(QJsonObject &node, QTreeWidgetItem *item, const QString &prefix)
+inline QTreeWidgetItem *MainWindow::addCompanyNode(QTreeWidgetItem *node, const QString &name, const QString &path)
+{
+    const TNodeData data = {TNodeType::Company, toHash(path), path, name};
+    QTreeWidgetItem *child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
+    child->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
+    child->setData(0, Qt::UserRole, QVariant::fromValue(data));
+    node->addChild(child);
+    return child;
+}
+
+inline QTreeWidgetItem *MainWindow::addProductNode(QTreeWidgetItem *node, const QString &name, const QString &path)
+{
+    const TNodeData data = {TNodeType::Product, toHash(path), path, name};
+    QTreeWidgetItem *child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
+    child->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
+    child->setData(0, Qt::UserRole, QVariant::fromValue(data));
+    node->addChild(child);
+    return child;
+}
+
+inline int MainWindow::addFileNode(QTreeWidgetItem *node, int errorBits, const QString &fileName)
+{
+    // add icon file name
+    const QFileInfo info = QFileInfo(fileName);
+    const QString fname = info.fileName();
+    const TNodeData data = {TNodeType::FileItem, toHash(info.filePath()), info.filePath(), fname};
+    QTreeWidgetItem *child;
+
+    if (findName(ui->tvBundleStruct->topLevelItem(0), fname)) {
+        QMessageBox::critical(this,
+                              qApp->applicationDisplayName(), //
+                              tr("Object '%1' already exist.").arg(fname));
+        return errorBits;
+    } else {
+        child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
+        child->setData(0, Qt::UserRole, QVariant::fromValue(data));
+        child->setData(0, Qt::DisplayRole, data.name);
+        node->addChild(child);
+    }
+
+    return 0;
+}
+
+inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
+{
+    QTreeWidgetItem *child, *comp;
+    QString _path = path;
+    int state = 0;
+
+    if (root == ui->tvBundleStruct->topLevelItem(0)) {
+        QMessageBox::critical(this,
+                              qApp->applicationDisplayName(), //
+                              tr("Items below 'Edit' node are not allowed."));
+    }
+
+    if (!(comp = findName(root, ui->edCompany->text()))) {
+        _path += "/" + ui->edCompany->text();
+        comp = addCompanyNode(root, ui->edCompany->text(), _path);
+        state = 0xe0;
+    }
+    if (!(child = findName(comp, ui->edProduct->text()))) {
+        _path += "/" + ui->edProduct->text();
+        child = addProductNode(comp, ui->edProduct->text(), _path);
+        state = 0xe0;
+    }
+
+#if 0
+    if (!(child = findCompanyAndProduct(root))) {
+        child = addProductNode(root, ui->edCompany->text(), path);
+        child = addProductNode(child, ui->edProduct->text(), path + "/" + ui->edProduct->text());
+        state = 0xf0;
+    }
+#endif
+
+    state |= addFileNode(child, 0x01, ui->edFusionMacro->text());
+    state |= addFileNode(child, 0x02, ui->edIconFile->text());
+
+    if ((state & 0x01) && (state & 0x02) && (state & 0xf0)) {
+        QTreeWidgetItem *parent = child->parent();
+        parent->removeChild(child);
+        root->removeChild(parent);
+        delete child;
+        delete parent;
+    } else {
+        ui->statusbar->showMessage(tr("Fusion added to bundle."), 5000);
+    }
+
+    if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
+        ui->pbBuildDRFX->setEnabled(true);
+        ui->pbBuildDRFX->setDefault(true);
+        ui->pbImport->setDefault(false);
+    }
+}
+
+inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
 {
     if (item->childCount() == 0) {
         return;
     }
 
     for (int i = 0; i < item->childCount(); i++) {
-        QTreeWidgetItem *twi = item->child(i);
+        QTreeWidgetItem *child = item->child(i);
+        if (child->childCount() > 0) {
+            bundleToJson(json, child);
+        }
 
-        QVariant title = twi->data(0, Qt::ItemDataRole::DisplayRole);
-        if (title.isNull() || !title.isValid()) {
+        // child data object
+        const QVariant vChild = child->data(0, Qt::ItemDataRole::UserRole);
+        if (vChild.isNull() || !vChild.isValid()) {
+            continue;
+        }
+        const TNodeData ndChild = vChild.value<TNodeData>();
+
+        // skip if not file node
+        if (ndChild.type == TNodeType::Static || ndChild.type == TNodeType::None) {
             continue;
         }
 
-        QString s = title.toString();
-        if (!prefix.isEmpty()) {
-            s = prefix + "/" + title.toString();
+        // parents data object
+        const QVariant vParent = item->data(0, Qt::ItemDataRole::UserRole);
+        if (vParent.isNull() || !vParent.isValid()) {
+            continue;
         }
+        const TNodeData ndParent = vParent.value<TNodeData>();
+
+        const QString hash = toHash(ndChild.path);
+        const QString key = QStringLiteral("%1/%2").arg(ndChild.type).arg(hash);
 
         QJsonObject jo;
-
-        // additional data
-        const QVariant data = twi->data(0, Qt::ItemDataRole::UserRole);
-        if (!data.isNull() && data.isValid()) {
-            TNodeData nd = data.value<TNodeData>();
-            if (nd.hash.isEmpty()) {
-                nd.hash = toHash(nd.name);
-            }
-            jo["tree.type"] = QJsonValue(nd.type);
-            jo["data.hash"] = QJsonValue(nd.hash);
-            jo["data.name"] = QJsonValue(nd.name);
-            jo["data.path"] = QJsonValue(nd.path);
-        }
-        jo["tree.path"] = QJsonValue(s);
+        jo["node.parent"] = ndParent.path;
+        //jo["data.hash"] = QJsonValue(hash);
+        jo["node.type"] = QJsonValue(ndChild.type);
+        jo["data.name"] = QJsonValue(ndChild.name);
+        jo["data.path"] = QJsonValue(ndChild.path);
 
         // store to node object
-        node[toHash(s)] = jo;
-
-        // gather child nodes
-        if (twi->childCount() > 0) {
-            bundleStructToJson(node, twi, s);
-        }
+        json[key] = jo;
     }
 }
 
 inline bool MainWindow::loadBundleStructure()
 {
     QFile f(bundleStuctureFile());
-    if (!f.open(QFile::ReadOnly)) {
+    if (!f.open(QFile::ReadOnly) || f.size() == 0) {
         return false; // may not exist (first run)
     }
 
+    QJsonParseError error;
+    QJsonDocument jdoc = QJsonDocument::fromJson(f.readAll(), &error);
+    f.close();
+
+    if (error.error != QJsonParseError::NoError) {
+        QMessageBox::critical(this, qApp->applicationDisplayName(), error.errorString());
+        return false;
+    }
+
+    const QJsonObject jroot = jdoc.object();
+    if (jroot.isEmpty()) {
+        QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Could not load bundle structure."));
+        return false;
+    }
+
+    QTreeWidgetItem *comp = nullptr;
+    QTreeWidgetItem *prod = nullptr;
+    QTreeWidgetItem *parent = nullptr;
+    QTreeWidgetItem *root = ui->tvBundleStruct->topLevelItem(0);
+    const QStringList keys = jroot.keys();
+    foreach (const QString key, keys) {
+        const QJsonObject jo = jroot[key].toObject();
+
+        if (!jo.contains("node.parent")) {
+            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node parent missing in bundle file."));
+            return false;
+        }
+        const QString nodeParent = jo["node.parent"].toString();
+
+        if (!jo.contains("node.type")) {
+            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node type missing in bundle file."));
+            return false;
+        }
+        const int nodeType = jo["node.type"].toInt();
+
+        if (!jo.contains("data.name")) {
+            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node name missing in bundle file."));
+            return false;
+        }
+        const QString nodeName = jo["data.name"].toString();
+
+        if (!jo.contains("data.path")) {
+            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node path missing in bundle file."));
+            return false;
+        }
+        const QString nodePath = jo["data.path"].toString();
+
+        switch (nodeType) {
+            case TNodeType::Company: {
+                if ((parent = findName(root, nodeParent))) {
+                    if (!findName(parent, nodePath)) {
+                        comp = addCompanyNode(parent, nodeName, nodePath);
+                    }
+                }
+                break;
+            }
+            case TNodeType::Product: {
+                if ((parent = findName(root, nodeParent))) {
+                    if (!findName(parent, nodePath)) {
+                        prod = addProductNode(parent, nodeName, nodePath);
+                    }
+                }
+                break;
+            }
+            case TNodeType::FileItem: {
+                if (comp && prod) {
+                    int state = addFileNode(prod, 0x04, nodePath);
+                    if (state != 0) {
+                        QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Object '%1' already exist.").arg(nodeName));
+                        return false;
+                    }
+                }
+                break;
+            }
+            default: {
+                QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Invalid node type detected."));
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -985,29 +1107,4 @@ inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
         node->removeChild(item);
         delete item;
     }
-}
-
-void MainWindow::onBuildError(DRFXBuilder *builder, const QString &message)
-{
-    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
-    ui->pbBuildDRFX->setEnabled(true);
-    builder->disconnect(this);
-    builder->deleteLater();
-}
-
-void MainWindow::onBuildStarted(DRFXBuilder *)
-{
-    ui->pbBuildDRFX->setEnabled(false);
-}
-
-void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
-{
-    QMessageBox::information(this,
-                             qApp->applicationDisplayName(), //
-                             tr("Bundle file '%1' successfully created.").arg(fileName));
-    ui->pbBuildDRFX->setEnabled(true);
-    builder->disconnect(this);
-    builder->deleteLater();
-    m_outputName = fileName;
-    checkOutputExist();
 }
