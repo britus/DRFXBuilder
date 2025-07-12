@@ -38,6 +38,16 @@ private slots:
     void on_pbImport_clicked();
     void on_pbDelete_clicked();
     void on_pbBuildDRFX_clicked();
+    void on_pbInstall_clicked();
+    void on_pbNewBundle_clicked();
+
+    void on_edFusionMacro_textChanged(const QString &arg1);
+
+    void on_edIconFile_textChanged(const QString &arg1);
+
+    void on_edCompany_textChanged(const QString &arg1);
+
+    void on_edProduct_textChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
@@ -45,12 +55,14 @@ private:
     QString m_macroPath;
     QString m_iconPath;
     QString m_outputName;
+    QString m_installPath;
 
 private:
     inline void postInitUi();
     inline void updateTargetInfo();
     inline void checkInputFields();
     inline void checkBlackmagic();
+    inline void checkOutputExist();
     inline bool checkBundleContent(QTreeWidgetItem *node);
     inline void cbxAddBundleItems(QTreeWidgetItem *node, const QString &prefix = "");
     inline QTreeWidgetItem *findCompanyAndProduct(QTreeWidgetItem *node);
@@ -58,4 +70,5 @@ private:
     inline void bundleStructToJson(QJsonObject &node, QTreeWidgetItem *item, const QString &prefix);
     inline void saveBundleStructure();
     inline bool loadBundleStructure();
+    inline void resetBundleStructure(QTreeWidgetItem *node);
 };

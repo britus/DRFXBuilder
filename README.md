@@ -2,7 +2,7 @@
 
 ### Overview
 
-The project contains the user interface to create VFX bundle files for Blackmagics Davinci Resolve.
+The project contains the user interface to create VFX bundle files for Blackmagics Davinci Resolve or Fusion.
 
 ### Dependencies
 

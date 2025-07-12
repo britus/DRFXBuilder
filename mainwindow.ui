@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>716</width>
-    <height>545</height>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,11 +24,23 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout_3">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
     <property name="spacing">
      <number>12</number>
     </property>
-    <item row="0" column="0">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
      <widget class="QWidget" name="pnlBundle" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
@@ -51,6 +63,12 @@
        </property>
        <item>
         <widget class="QTreeWidget" name="tvBundleStruct">
+         <property name="statusTip">
+          <string>Display the DRFX bundle structure</string>
+         </property>
+         <property name="whatsThis">
+          <string>Display the DRFX bundle structure</string>
+         </property>
          <property name="sizeAdjustPolicy">
           <enum>QAbstractScrollArea::AdjustIgnored</enum>
          </property>
@@ -172,7 +190,7 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="1">
+    <item>
      <widget class="QWidget" name="pnlContent" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -188,21 +206,6 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <property name="spacing">
-        <number>24</number>
-       </property>
-       <property name="sizeConstraint">
-        <enum>QLayout::SetMinAndMaxSize</enum>
-       </property>
-       <property name="leftMargin">
-        <number>12</number>
-       </property>
-       <property name="topMargin">
-        <number>12</number>
-       </property>
-       <property name="rightMargin">
-        <number>12</number>
-       </property>
-       <property name="bottomMargin">
         <number>12</number>
        </property>
        <item>
@@ -216,11 +219,11 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>270</height>
+           <height>290</height>
           </size>
          </property>
          <property name="title">
-          <string>Import</string>
+          <string>Add to bundle</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <property name="spacing">
@@ -280,10 +283,31 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Name of the Fusion macro file to add to the package.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Name of the Fusion macro file to add to the package.</string>
+               </property>
               </widget>
              </item>
              <item row="0" column="2">
               <widget class="QToolButton" name="pbSelectMacro">
+               <property name="toolTip">
+                <string>Select Fusion macro file name.</string>
+               </property>
+               <property name="statusTip">
+                <string>Select Fusion macro file name.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Select Fusion macro file name.</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -313,10 +337,31 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Name of the icon file to add to the package.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Name of the icon file to add to the package.</string>
+               </property>
               </widget>
              </item>
              <item row="1" column="2">
               <widget class="QToolButton" name="pbSelectIcon">
+               <property name="toolTip">
+                <string>Select icon file name.</string>
+               </property>
+               <property name="statusTip">
+                <string>Select icon file name.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Select icon file name.</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -355,10 +400,36 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="edCompany"/>
+              <widget class="QLineEdit" name="edCompany">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Your company name will be displayed in the Fusion Tools tree</string>
+               </property>
+               <property name="whatsThis">
+                <string>Your company name will be displayed in the Fusion Tools tree</string>
+               </property>
+              </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="edProduct"/>
+              <widget class="QLineEdit" name="edProduct">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Your product name will be displayed in the Fusion Tools tree</string>
+               </property>
+               <property name="whatsThis">
+                <string>Your product name will be displayed in the Fusion Tools tree</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -390,7 +461,7 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>&amp;Structure node:</string>
+                <string>Bundle node</string>
                </property>
                <property name="buddy">
                 <cstring>cbBundleNode</cstring>
@@ -405,12 +476,21 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="toolTip">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
+               <property name="statusTip">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
+               <property name="whatsThis">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
               </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
-                <string>Target path:</string>
+                <string>Bundle path:</string>
                </property>
               </widget>
              </item>
@@ -443,6 +523,34 @@
               <number>0</number>
              </property>
              <item>
+              <widget class="QPushButton" name="pbImport">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Add your Fusion VFX to bundle structure</string>
+               </property>
+               <property name="whatsThis">
+                <string>Add your Fusion VFX to bundle structure</string>
+               </property>
+               <property name="text">
+                <string>A&amp;dd to Bundle</string>
+               </property>
+               <property name="autoDefault">
+                <bool>true</bool>
+               </property>
+               <property name="default">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -456,28 +564,21 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="pbImport">
-               <property name="enabled">
-                <bool>false</bool>
+              <widget class="QPushButton" name="pbNewBundle">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Reset bundle structure</string>
+               </property>
+               <property name="whatsThis">
+                <string>Reset bundle structure</string>
                </property>
                <property name="text">
-                <string>I&amp;mport</string>
-               </property>
-               <property name="autoDefault">
-                <bool>true</bool>
-               </property>
-               <property name="default">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pbBuildDRFX">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Create...</string>
+                <string>New Bundle</string>
                </property>
                <property name="autoDefault">
                 <bool>true</bool>
@@ -519,6 +620,12 @@
           </property>
           <item>
            <widget class="QTableWidget" name="twNodeList">
+            <property name="statusTip">
+             <string>Shows selected Fusion VFX items</string>
+            </property>
+            <property name="whatsThis">
+             <string>Shows selected Fusion VFX items</string>
+            </property>
             <property name="editTriggers">
              <set>QAbstractItemView::NoEditTriggers</set>
             </property>
@@ -624,12 +731,133 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Delete selected item from DRFX bundle structure</string>
+               </property>
+               <property name="statusTip">
+                <string>Delete selected item from DRFX bundle structure</string>
+               </property>
+               <property name="whatsThis">
+                <string>Delete selected item from DRFX bundle structure</string>
+               </property>
                <property name="text">
                 <string>&amp;Delete</string>
+               </property>
+               <property name="autoDefault">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="pnlButtonBottom" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="txBundleFile">
+            <property name="text">
+             <string>.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>193</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbBuildDRFX">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Create the DRFX bundle file</string>
+            </property>
+            <property name="statusTip">
+             <string>Create the DRFX bundle file</string>
+            </property>
+            <property name="whatsThis">
+             <string>Create the DRFX bundle file</string>
+            </property>
+            <property name="text">
+             <string>Create...</string>
+            </property>
+            <property name="autoDefault">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbInstall">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Install the DRFX bundle file to Davinci Resolve templates or Fusion templates.</string>
+            </property>
+            <property name="statusTip">
+             <string>Install the DRFX bundle file to Davinci Resolve templates or Fusion templates.</string>
+            </property>
+            <property name="whatsThis">
+             <string>Install the DRFX bundle file to Davinci Resolve templates or Fusion templates.</string>
+            </property>
+            <property name="text">
+             <string>I&amp;nstall</string>
+            </property>
+            <property name="autoDefault">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
@@ -661,10 +889,12 @@
   <tabstop>edProduct</tabstop>
   <tabstop>cbBundleNode</tabstop>
   <tabstop>pbImport</tabstop>
-  <tabstop>pbBuildDRFX</tabstop>
+  <tabstop>pbNewBundle</tabstop>
   <tabstop>tvBundleStruct</tabstop>
   <tabstop>twNodeList</tabstop>
   <tabstop>pbDelete</tabstop>
+  <tabstop>pbBuildDRFX</tabstop>
+  <tabstop>pbInstall</tabstop>
  </tabstops>
  <resources>
   <include location="DRFXBuilder.qrc"/>

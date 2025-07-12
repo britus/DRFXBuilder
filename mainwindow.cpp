@@ -1,9 +1,11 @@
 #include "mainwindow.h"
 #include "drfxbuilder.h"
+#include "drfxprogressdialog.h"
 #include "drfxtypes.h"
 #include "ui_mainwindow.h"
 #include <QClipboard>
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -16,6 +18,7 @@
 #include <QJsonValue>
 #include <QMap>
 #include <QMessageBox>
+#include <QScreen>
 #include <QSplitter>
 #include <QStandardPaths>
 #include <QTableWidgetItem>
@@ -26,7 +29,9 @@ Q_DECLARE_METATYPE(QTableWidgetItem *);
 
 #ifdef Q_OS_MACOS
 #define FUSION_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
+#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates"
+#define FUSION_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
+#define DAVINCI_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates"
 #endif
 
 #ifdef Q_OS_WINDOWS
@@ -43,14 +48,14 @@ inline static QString configFile()
 {
     QString path = QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::ConfigLocation);
-    return path.append(QDir::separator()).append(".eof_drfx_builder.conf");
+    return path.append(QDir::separator()).append("eof_drfx_builder.conf");
 }
 
 inline static QString bundleStuctureFile()
 {
     QString path = QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::ConfigLocation);
-    return path.append(QDir::separator()).append(".eof_drfx_structure.conf");
+    return path.append(QDir::separator()).append("eof_drfx_structure.conf");
 }
 
 inline static QString picturePath()
@@ -66,6 +71,16 @@ inline static QString bundleOutputName()
     return path.append(QDir::separator()).append("bundle.drfx");
 }
 
+inline static QString homePath(const QString &path = "")
+{
+    QString home = QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::HomeLocation);
+    if (path.isEmpty())
+        return home;
+    QString p = path;
+    return p.replace("${HOME}", home, Qt::CaseInsensitive);
+}
+
 inline static QString toHash(const QString &nodePath)
 {
     QByteArray hash = QCryptographicHash::hash( //
@@ -74,13 +89,23 @@ inline static QString toHash(const QString &nodePath)
     return hash.toHex();
 }
 
+inline static QString shortenText(const QString &value, int max)
+{
+    QString result = value;
+    if (result.length() > max && (max / 2) > 0) {
+        result = result.left(max / 2) + " ... " + result.right(max / 2);
+    }
+    return result;
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_settings(configFile(), QSettings::Format::NativeFormat)
-    , m_macroPath(FUSION_MACRO_PATH)
+    , m_macroPath(homePath(DAVINCI_MACRO_PATH))
     , m_iconPath(picturePath())
     , m_outputName(bundleOutputName())
+    , m_installPath(homePath(DAVINCI_TEMPLATE_PATH))
 {
     ui->setupUi(this);
 
@@ -88,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(qApp->applicationDisplayName());
 
     ui->statusbar->setSizeGripEnabled(true);
-    ui->statusbar->showMessage(tr("Import Fusion macro file."), -1);
+    ui->statusbar->showMessage(tr("Import Fusion macro file."), 5000);
 
     QSplitter *splitter = new QSplitter(Qt::Horizontal, ui->centralwidget);
     splitter->setSizes(QList<int>()                                      //
@@ -113,6 +138,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
         saveBundleStructure();
+        m_settings.setValue("window.width", geometry().width()); //
+        m_settings.setValue("window.height", geometry().height());
         // write app settings
         m_settings.sync();
         if (m_settings.status() != QSettings::NoError) {
@@ -128,6 +155,17 @@ MainWindow::MainWindow(QWidget *parent)
     m_outputName = m_settings.value("output.name", m_outputName).toString();
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
+    m_installPath = m_settings.value("install.path", m_installPath).toString();
+
+    // center window on primary screen
+    QScreen *screen = qApp->primaryScreen();
+    int width = m_settings.value("window.width", geometry().width()).toUInt();
+    int hight = m_settings.value("window.height", geometry().height()).toUInt();
+    if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
+        uint centerX = screen->size().width() / 2 - width / 2;
+        uint centerY = screen->size().height() / 2 - hight / 2;
+        setGeometry(centerX, centerY, width, hight);
+    }
 
     // restore tree view first */
     loadBundleStructure();
@@ -141,6 +179,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_edFusionMacro_textChanged(const QString &value)
+{
+    ui->edFusionMacro->setStatusTip(shortenText(value, 80));
+}
+
 void MainWindow::on_edFusionMacro_textEdited(const QString &value)
 {
     const QFileInfo fi(value);
@@ -149,6 +192,11 @@ void MainWindow::on_edFusionMacro_textEdited(const QString &value)
     m_settings.setValue("macro.path", m_macroPath);
     checkInputFields();
     updateTargetInfo();
+}
+
+void MainWindow::on_edIconFile_textChanged(const QString &value)
+{
+    ui->edIconFile->setStatusTip(shortenText(value, 80));
 }
 
 void MainWindow::on_edIconFile_textEdited(const QString &value)
@@ -161,6 +209,11 @@ void MainWindow::on_edIconFile_textEdited(const QString &value)
     updateTargetInfo();
 }
 
+void MainWindow::on_edCompany_textChanged(const QString &)
+{
+    //ui->edCompany->setStatusTip(value);
+}
+
 void MainWindow::on_edCompany_textEdited(const QString &value)
 {
     m_settings.setValue("company", value);
@@ -168,67 +221,16 @@ void MainWindow::on_edCompany_textEdited(const QString &value)
     updateTargetInfo();
 }
 
+void MainWindow::on_edProduct_textChanged(const QString &)
+{
+    //ui->edProduct->setStatusTip(value);
+}
+
 void MainWindow::on_edProduct_textEdited(const QString &value)
 {
     m_settings.setValue("product", value);
     checkInputFields();
     updateTargetInfo();
-}
-
-void MainWindow::on_pbSelectMacro_clicked()
-{
-    QFileDialog d(this);
-
-    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
-        qDebug("File selected: %s", qPrintable(file));
-        on_edFusionMacro_textEdited(file);
-        ui->edFusionMacro->setText(file);
-        ui->edFusionMacro->setFocus();
-    });
-    connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
-        qDebug("Directory entered: %s", qPrintable(directory));
-        m_settings.setValue("macro.path", directory);
-        m_macroPath = directory;
-    });
-
-    d.setWindowTitle(tr("Select Fusion macro file"));
-    d.setWindowFilePath(m_macroPath);
-    d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
-    d.setFileMode(QFileDialog::FileMode::ExistingFile);
-    d.setDirectory(m_macroPath);
-    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Fusion macro file"));
-    d.setOption(QFileDialog::Option::ReadOnly);
-    d.setNameFilters(QStringList() << "*.setting");
-    d.setDefaultSuffix(".setting");
-    d.exec();
-}
-
-void MainWindow::on_pbSelectIcon_clicked()
-{
-    QFileDialog d(this);
-
-    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
-        qDebug("File selected: %s", qPrintable(file));
-        on_edIconFile_textEdited(file);
-        ui->edIconFile->setText(file);
-        ui->edIconFile->setFocus();
-    });
-    connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
-        qDebug("Directory entered: %s", qPrintable(directory));
-        m_settings.setValue("icon.path", directory);
-        m_iconPath = directory;
-    });
-
-    d.setWindowTitle(tr("Select icon file"));
-    d.setWindowFilePath(m_iconPath);
-    d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
-    d.setFileMode(QFileDialog::FileMode::ExistingFile);
-    d.setDirectory(m_iconPath);
-    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Icon file"));
-    d.setOption(QFileDialog::Option::ReadOnly);
-    d.setNameFilters(QStringList() << "*.png" << "*.*");
-    d.setDefaultSuffix(".setting");
-    d.exec();
 }
 
 void MainWindow::on_cbBundleNode_activated(int index)
@@ -366,6 +368,73 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
     ui->tvBundleStruct->setCurrentItem(twi);
 }
 
+void MainWindow::on_pbNewBundle_clicked()
+{
+    if (QMessageBox::question(this,
+                              qApp->applicationDisplayName(), //
+                              tr("Do you want to create new bundle?"))) {
+        resetBundleStructure(ui->tvBundleStruct->topLevelItem(0));
+        ui->pbBuildDRFX->setDefault(false);
+        ui->pbBuildDRFX->setEnabled(false);
+    }
+}
+
+void MainWindow::on_pbSelectMacro_clicked()
+{
+    QFileDialog d(this);
+
+    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+        on_edFusionMacro_textEdited(file);
+        ui->edFusionMacro->setText(file);
+        ui->edFusionMacro->setFocus();
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
+        qDebug("Directory entered: %s", qPrintable(directory));
+        m_settings.setValue("macro.path", directory);
+        m_macroPath = directory;
+    });
+
+    d.setWindowTitle(tr("Select Fusion macro file"));
+    d.setWindowFilePath(m_macroPath);
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
+    d.setFileMode(QFileDialog::FileMode::ExistingFile);
+    d.setDirectory(m_macroPath);
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Fusion macro file"));
+    d.setOption(QFileDialog::Option::ReadOnly);
+    d.setNameFilters(QStringList() << "*.setting");
+    d.setDefaultSuffix(".setting");
+    d.exec();
+}
+
+void MainWindow::on_pbSelectIcon_clicked()
+{
+    QFileDialog d(this);
+
+    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+        on_edIconFile_textEdited(file);
+        ui->edIconFile->setText(file);
+        ui->edIconFile->setFocus();
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
+        qDebug("Directory entered: %s", qPrintable(directory));
+        m_settings.setValue("icon.path", directory);
+        m_iconPath = directory;
+    });
+
+    d.setWindowTitle(tr("Select icon file"));
+    d.setWindowFilePath(m_iconPath);
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
+    d.setFileMode(QFileDialog::FileMode::ExistingFile);
+    d.setDirectory(m_iconPath);
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Icon file"));
+    d.setOption(QFileDialog::Option::ReadOnly);
+    d.setNameFilters(QStringList() << "*.png" << "*.*");
+    d.setDefaultSuffix(".setting");
+    d.exec();
+}
+
 void MainWindow::on_pbImport_clicked()
 {
     QString path = ui->cbBundleNode->currentText();
@@ -449,6 +518,8 @@ void MainWindow::on_pbImport_clicked()
         delete prod;
         root->removeChild(comp);
         delete comp;
+    } else {
+        ui->statusbar->showMessage(tr("Fusion added to bundle."), 5000);
     }
 
     if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
@@ -520,13 +591,67 @@ void MainWindow::on_pbBuildDRFX_clicked()
     }
 }
 
+void MainWindow::on_pbInstall_clicked()
+{
+    QFileInfo srcfi(m_outputName);
+    QString fname = QDir::toNativeSeparators(m_installPath + QDir::separator() + srcfi.fileName());
+
+    if (QFile::exists(fname)) {
+        QFileInfo tgtfi(fname);
+        QDateTime tdt = tgtfi.fileTime(QFile::FileTime::FileModificationTime);
+        QDateTime sdt = srcfi.fileTime(QFile::FileTime::FileModificationTime);
+        if (tgtfi.size() == srcfi.size() && tdt == sdt) {
+            QMessageBox::critical(this,
+                                  qApp->applicationDisplayName(), //
+                                  tr("Target file is identical to source file."));
+            return;
+        }
+    }
+
+    DRFXProgressDialog *dlg = new DRFXProgressDialog(this);
+    dlg->setMessage(tr("Please wait, install bundle: %1").arg(srcfi.fileName()));
+    dlg->setRange(0, srcfi.size());
+    dlg->run(
+        [this, fname](DRFXProgressDialog *p, QThread *t) {
+            QFile srcf(m_outputName);
+            if (!srcf.open(QFile::ReadOnly)) {
+                p->setError(tr("Could not open file: %1").arg(m_outputName));
+                return;
+            }
+
+            QFile tgtf(fname);
+            if (!tgtf.open(QFile::WriteOnly | QFile::Truncate)) {
+                srcf.close();
+                p->setError(tr("Could not create file: %1").arg(fname));
+                return;
+            }
+
+            const qsizetype chunksize = 16384;
+            qsizetype bytesRead = 0;
+            QByteArray buffer;
+            buffer = srcf.read(chunksize);
+            while (buffer.length() > 0 && !t->isInterruptionRequested()) {
+                t->yieldCurrentThread();
+                p->setValue(bytesRead);
+                bytesRead += buffer.length();
+                tgtf.write(buffer);
+                buffer = srcf.read(chunksize);
+            }
+
+            srcf.close();
+            tgtf.flush();
+            tgtf.close();
+        },
+        [](DRFXProgressDialog *p) { p->deleteLater(); });
+}
+
 inline void MainWindow::postInitUi()
 {
     ui->tvBundleStruct->expandAll();
     ui->edFusionMacro->setPlaceholderText(tr("Enter macro file name"));
-    ui->edFusionMacro->setText(m_settings.value("macro.file", m_macroPath).toString());
+    ui->edFusionMacro->setText(m_settings.value("macro.file").toString());
     ui->edIconFile->setPlaceholderText(tr("Enter icon file name"));
-    ui->edIconFile->setText(m_settings.value("icon.file", m_iconPath).toString());
+    ui->edIconFile->setText(m_settings.value("icon.file").toString());
     ui->edCompany->setPlaceholderText(tr("Enter company name"));
     ui->edCompany->setText(m_settings.value("company").toString());
     ui->edProduct->setPlaceholderText(tr("Enter product name"));
@@ -542,12 +667,12 @@ inline void MainWindow::postInitUi()
     }
 
     checkInputFields();
-
     if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
         ui->pbImport->setDefault(false);
         ui->pbBuildDRFX->setEnabled(true);
         ui->pbBuildDRFX->setDefault(true);
     }
+    checkOutputExist();
 }
 
 inline void MainWindow::updateTargetInfo()
@@ -562,14 +687,27 @@ inline void MainWindow::updateTargetInfo()
     ui->txTargetPath->setText(text);
 }
 
+inline void MainWindow::checkOutputExist()
+{
+    if (QFile::exists(m_outputName)) {
+        ui->pbImport->setDefault(false);
+        ui->pbBuildDRFX->setDefault(false);
+        ui->pbInstall->setEnabled(true);
+        ui->pbInstall->setDefault(true);
+        ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
+    }
+}
+
 inline void MainWindow::checkBlackmagic()
 {
     // check which installed Fusion or Davinci or both
     if (m_macroPath.isEmpty()) {
         QTimer::singleShot(50, this, [this] {
-            const QIcon icon(":/assets/png/dfrxbuilder.png");
-            const QDir dbmf(FUSION_MACRO_PATH);
-            const QDir dbmd(DAVINCI_MACRO_PATH);
+            const QIcon icon(":/assets/dfrxbuilder.iconset/icon_32x32.png");
+            const QDir dbmf(homePath(FUSION_MACRO_PATH));
+            const QDir dbmd(homePath(DAVINCI_MACRO_PATH));
+            const QDir dbif(homePath(FUSION_TEMPLATE_PATH));
+            const QDir dbid(homePath(DAVINCI_TEMPLATE_PATH));
             int flags = 0;
 
             if (dbmf.exists()) {
@@ -598,10 +736,12 @@ inline void MainWindow::checkBlackmagic()
                 switch (mb.exec()) {
                     case QMessageBox::Button::Yes: {
                         m_macroPath = dbmf.absolutePath();
+                        m_installPath = dbif.absolutePath();
                         break;
                     }
                     case QMessageBox::Button::Ok: {
                         m_macroPath = dbmd.absolutePath();
+                        m_installPath = dbid.absolutePath();
                         break;
                     }
                     default: {
@@ -613,16 +753,15 @@ inline void MainWindow::checkBlackmagic()
             // fusion
             else if ((flags & 0x01) == 0x01) {
                 m_macroPath = dbmf.absolutePath();
+                m_installPath = dbif.absolutePath();
             }
             // davinci
             else if ((flags & 0x02) == 0x02) {
                 m_macroPath = dbmd.absolutePath();
-            } else {
-                QMessageBox::information(this,
-                                         qApp->applicationDisplayName(), //
-                                         tr("Blackmagic Davinci Resolve nor Fusion not found."));
+                m_installPath = dbid.absolutePath();
             }
             m_settings.setValue("macro.path", m_macroPath);
+            m_settings.setValue("install.path", m_installPath);
             postInitUi();
         });
     } else {
@@ -817,6 +956,31 @@ inline bool MainWindow::loadBundleStructure()
     return true;
 }
 
+inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
+{
+    QList<QTreeWidgetItem *> removeList;
+    for (int i = 0; i < node->childCount(); i++) {
+        QTreeWidgetItem *child = node->child(i);
+        if (child->childCount() > 0) {
+            resetBundleStructure(child);
+        }
+        const QVariant v = child->data(0, Qt::ItemDataRole::UserRole);
+        if (v.isNull() || !v.isValid()) {
+            continue;
+        }
+        TNodeData nd = v.value<TNodeData>();
+        if (nd.type == TNodeType::Static || nd.type == TNodeType::None) {
+            continue;
+        }
+        removeList.append(child);
+    }
+    while (!removeList.isEmpty()) {
+        QTreeWidgetItem *item = removeList.takeFirst();
+        node->removeChild(item);
+        delete item;
+    }
+}
+
 void MainWindow::onBuildError(DRFXBuilder *builder, const QString &message)
 {
     QMessageBox::critical(this, qApp->applicationDisplayName(), message);
@@ -838,4 +1002,6 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
     ui->pbBuildDRFX->setEnabled(true);
     builder->disconnect(this);
     builder->deleteLater();
+    m_outputName = fileName;
+    checkOutputExist();
 }

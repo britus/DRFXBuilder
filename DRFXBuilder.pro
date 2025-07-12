@@ -147,7 +147,8 @@ SOURCES += \
 	$$PWD/drfxbuilder.cpp \
 	$$PWD/main.cpp \
 	$$PWD/mainwindow.cpp \
-	$$PWD/qzip/src/compress/qzip.cpp
+	$$PWD/qzip/src/compress/qzip.cpp \
+	drfxprogressdialog.cpp
 
 HEADERS += \
 	$$PWD/drfxbuilder.h \
@@ -155,10 +156,12 @@ HEADERS += \
 	$$PWD/mainwindow.h \
 	$$PWD/qzip/src/compress/qtcompressglobal.h \
 	$$PWD/qzip/src/compress/qzipreader.h \
-	$$PWD/qzip/src/compress/qzipwriter.h
+	$$PWD/qzip/src/compress/qzipwriter.h \
+	drfxprogressdialog.h
 
 FORMS += \
-	$$PWD/mainwindow.ui
+	$$PWD/mainwindow.ui \
+	drfxprogressdialog.ui
 
 TRANSLATIONS += \
 	$$PWD/DRFXBuilder_en_US.ts
@@ -170,4 +173,5 @@ DISTFILES += \
 	LICENSE \
 	README.md \
 	deploy.sh \
+	make.sh \
 	qmake-options.txt
