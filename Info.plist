@@ -21,15 +21,15 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3</string>
+	<string>4</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>DRFX Builder Bundle</string>
+			<string>DRFX Bundle Builder</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>drfx</string>
+				<string>vfxbb</string>
 			</array>
 		</dict>
 	</array>
@@ -80,16 +80,5 @@
 	<string>drfxbuilder.png</string>
 	<key>UIPrerenderedIcon</key>
 	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>DRFX Bundle Builder</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>vfxbb</string>
-			</array>
-		</dict>
-	</array>
 </dict>
 </plist>

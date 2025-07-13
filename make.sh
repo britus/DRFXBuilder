@@ -20,6 +20,7 @@ else
 	echo "Generate Xcode project in `pwd`/build/xcode ..."
     cd build/xcode && \
         qmake -spec macx-xcode ../../${QT_PROJECT}
+	cp -v DRFXBuilder.entitlements build/xcode/DRFXBuilder.entitlements
     echo "!!! ---- [ NOTE ] ---- !!!"
     echo "Now you have to open Xcode IDE and setup the bundle identifier, signing and capabilities."
     echo "Also you have to add QT framework bundles to copy into app directory!."
