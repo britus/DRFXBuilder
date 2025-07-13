@@ -97,7 +97,7 @@ private:
     inline QString configFile() const;
     inline QString bundleStuctureFile() const;
     inline QString picturePath() const;
-    inline QString bundleOutputName() const;
+    inline QString bundleOutputPath() const;
     inline QString homePath() const;
     inline QString documentsPath() const;
     inline QString scriptPath(quint8 appType) const;

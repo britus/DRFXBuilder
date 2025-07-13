@@ -8,8 +8,10 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QProcessEnvironment>
 #include <QIcon>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -33,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_settings(configFile(), QSettings::Format::NativeFormat)
     , m_macroPath(macroPath(TAppType::ATDavinci))
     , m_iconPath(picturePath())
-    , m_outputName(bundleOutputName())
+    , m_outputName()
     , m_installPath(templatePath(TAppType::ATDavinci))
     , m_scriptPath(scriptPath(TAppType::ATDavinci))
 {
@@ -41,17 +43,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowIcon(QIcon(":/assets/png/drfxbuilder.png"));
     setWindowTitle(qApp->applicationDisplayName());
-    setStyleSheet(qApp->styleSheet());
 
     ui->statusbar->setSizeGripEnabled(true);
     ui->statusbar->showMessage(tr("%1 %2 Copyright © 2025 by EoF Software Labs") //
                                    .arg(qApp->applicationDisplayName(), qApp->applicationVersion()),
                                20000);
-
+    
     // center window on primary screen
     QScreen *screen = qApp->primaryScreen();
-    int width = m_settings.value("window.width", geometry().width()).toUInt();
-    int hight = m_settings.value("window.height", geometry().height()).toUInt();
+    int width = m_settings.value("window.width", 1024).toUInt();
+    int hight = m_settings.value("window.height", 640).toUInt();
     if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
         uint centerX = screen->size().width() / 2 - width / 2;
         uint centerY = screen->size().height() / 2 - hight / 2;
@@ -64,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->insertWidget(1, ui->pnlContent);
     splitter->setHandleWidth(10);
 
-    int spleft = m_settings.value("splitter.left", width / 2).toInt();
+    int spleft = m_settings.value("splitter.left", 200).toInt();
     int spright = m_settings.value("splitter.right", width / 2).toInt();
     splitter->setSizes(QList<int>() << spleft << spright);
 
@@ -85,7 +86,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* load settings / defaults */
     m_appType = m_settings.value("app.type", TAppType::ATNone).toUInt();
-    m_outputName = m_settings.value("output.name", m_outputName).toString();
     m_installPath = m_settings.value("install.path", m_installPath).toString();
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
@@ -185,10 +185,16 @@ void MainWindow::on_edCompany_textEdited(const QString &value)
 void MainWindow::on_edProduct_textChanged(const QString &value)
 {
     m_settings.setValue("product", value);
-    if (m_outputName.contains(value)) {
+    
+    // first set output file from settings
+    setOutputName(m_settings.value("output.name","").toString());
+    
+    // update with product name if not exist
+    if (!m_outputName.contains(value)) {
         setOutputName(QDir::toNativeSeparators( //
-            QStringLiteral("%1/%2.drfx").arg(templatePath(m_appType), value)));
+            QStringLiteral("%1/%2.drfx").arg(bundleOutputPath(), value)));
     }
+    
     checkInputFields();
 }
 
@@ -395,7 +401,6 @@ void MainWindow::on_pbSaveBundle_clicked()
 void MainWindow::on_pbSelectMacro_clicked()
 {
     QFileDialog d(this);
-
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
         on_edFusionMacro_textEdited(file);
@@ -406,7 +411,6 @@ void MainWindow::on_pbSelectMacro_clicked()
         qDebug("Directory entered: %s", qPrintable(directory));
         setMacroPath(directory);
     });
-
     d.setWindowTitle(tr("Select Fusion macro file"));
     d.setWindowFilePath(m_macroPath);
     d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
@@ -423,7 +427,6 @@ void MainWindow::on_pbSelectMacro_clicked()
 void MainWindow::on_pbSelectIcon_clicked()
 {
     QFileDialog d(this);
-
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
         on_edIconFile_textEdited(file);
@@ -435,7 +438,6 @@ void MainWindow::on_pbSelectIcon_clicked()
         m_settings.setValue("icon.path", directory);
         setIconPath(directory);
     });
-
     d.setWindowTitle(tr("Select icon file"));
     d.setWindowFilePath(m_iconPath);
     d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
@@ -516,43 +518,43 @@ void MainWindow::on_pbDelete_clicked()
 
 void MainWindow::on_pbBuildDRFX_clicked()
 {
-    const QFileInfo fi(m_outputName);
+    const QFileInfo outFi(m_outputName);
 
     // the builder job
-    DRFXBuilder *builder = new DRFXBuilder(m_outputName, this);
+    DRFXBuilder *builder = new DRFXBuilder(outFi.fileName(), this);
     connect(builder, &DRFXBuilder::buildStarted, this, &MainWindow::onBuildStarted, Qt::QueuedConnection);
     connect(builder, &DRFXBuilder::buildComplete, this, &MainWindow::onBuildComplete, Qt::QueuedConnection);
     connect(builder, &DRFXBuilder::buildError, this, &MainWindow::onBuildError, Qt::QueuedConnection);
 
     QFileDialog d(this);
-    connect(&d, &QFileDialog::fileSelected, this, [builder](const QString &file) {
-        qDebug("Directory selected: %s", qPrintable(file));
-        builder->setOutputName(file);
+    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+        setOutputName(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
         qDebug("Directory entered: %s", qPrintable(directory));
     });
-
     d.setWindowTitle(tr("Save DRFX bundle file"));
-    d.setWindowFilePath(fi.absoluteFilePath());
+    d.setWindowFilePath(outFi.fileName());
     d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
     d.setFileMode(QFileDialog::FileMode::AnyFile);
-    d.setDirectory(fi.absolutePath());
+    d.setDirectory(outFi.absoluteFilePath());
     d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle file:"));
     d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.drfx):");
-    d.setOption(QFileDialog::DontConfirmOverwrite, true);
+    d.setOption(QFileDialog::DontConfirmOverwrite, false);
     d.setOption(QFileDialog::DontUseNativeDialog, false);
     d.setNameFilters(QStringList() << "*.drfx" << "*.*");
-    d.setHistory(QStringList() << fi.fileName());
+    d.setHistory(QStringList() << outFi.absoluteFilePath());
     d.setDefaultSuffix(".drfx");
     if (d.exec() == QFileDialog::Accepted) {
         // run async in with progress dialog UI
         DRFXProgressDialog *pd = new DRFXProgressDialog(this);
         connect(builder, &DRFXBuilder::buildItemsDone, pd, &DRFXProgressDialog::setValue);
         pd->setMessage(tr("Please wait, create bundle: %1").arg(builder->outputName()));
-        pd->setRange(0, ui->tvBundleStruct->children().count());
+        pd->setRange(0, (int)ui->tvBundleStruct->children().count());
         pd->run(                                                //
             [this, builder](DRFXProgressDialog *, QThread *t) { //
+                builder->setOutputName(m_outputName);
                 builder->build(t, ui->tvBundleStruct->topLevelItem(0));
             },
             [](DRFXProgressDialog *d) { //
@@ -563,71 +565,91 @@ void MainWindow::on_pbBuildDRFX_clicked()
 
 void MainWindow::on_pbInstall_clicked()
 {
-    QFileInfo outFi(m_outputName);
-    QFileInfo instFi(QDir::toNativeSeparators( //
-        QStringLiteral("%1/%2").arg(m_installPath, outFi.fileName())));
-
-    if (QMessageBox::question(this,
-                              qApp->applicationDisplayName(),                       //
-                              tr("Do you want to install DRFX bundle?\nBundle: %1") //
-                                  .arg(instFi.absoluteFilePath()))
-        == QMessageBox::No) {
-        return;
-    }
-
-    if (QFile::exists(instFi.absoluteFilePath())) {
-        QDateTime tdt = instFi.fileTime(QFile::FileTime::FileModificationTime);
-        QDateTime sdt = outFi.fileTime(QFile::FileTime::FileModificationTime);
-        if (instFi.size() == outFi.size() && tdt == sdt) {
-            QMessageBox::critical(this,
-                                  qApp->applicationDisplayName(), //
-                                  tr("Target file is identical to source file."));
-            return;
+    QFileInfo srcFi(m_outputName);
+    QFileDialog d(this);
+    connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
+        qDebug("Directory entered: %s", qPrintable(directory));
+    });
+    d.setWindowTitle(tr("Install DRFX bundle file"));
+    d.setWindowFilePath(srcFi.fileName());
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
+    d.setFileMode(QFileDialog::FileMode::AnyFile);
+    d.setDirectory(templatePath(m_appType));
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle file:"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.drfx):");
+    d.setOption(QFileDialog::DontConfirmOverwrite, false);
+    d.setOption(QFileDialog::DontUseNativeDialog, false);
+    d.setNameFilters(QStringList() << "*.drfx" << "*.*");
+    d.setHistory(QStringList() << srcFi.absoluteFilePath());
+    d.setDefaultSuffix(".drfx");
+    if (d.exec() == QFileDialog::Accepted && !d.selectedFiles().isEmpty()) {
+        const QFileInfo instFi(d.selectedFiles().at(0));
+        if (QFile::exists(instFi.absoluteFilePath())) {
+            QDateTime tdt = instFi.fileTime(QFile::FileTime::FileModificationTime);
+            QDateTime sdt = srcFi.fileTime(QFile::FileTime::FileModificationTime);
+            if (instFi.size() == srcFi.size() && tdt == sdt) {
+                QMessageBox::critical(this,
+                                      qApp->applicationDisplayName(), //
+                                      tr("Target file is identical to source file."));
+                return;
+            }
         }
-    }
-
-    DRFXProgressDialog *dlg = new DRFXProgressDialog(this);
-    dlg->setMessage(tr("Please wait, install bundle: %1").arg(outFi.fileName()));
-    dlg->setRange(0, outFi.size());
-    dlg->run(
-        [this, outFi, instFi](DRFXProgressDialog *p, QThread *t) {
-            QFile srcf(m_outputName);
-            if (!srcf.open(QFile::ReadOnly)) {
-                p->setError(tr("Could not open file: %1").arg(outFi.absoluteFilePath()));
-                return;
-            }
-
-            QFile tgtf(instFi.absoluteFilePath());
-            if (!tgtf.open(QFile::WriteOnly | QFile::Truncate)) {
-                srcf.close();
-                p->setError(tr("Could not create file: %1").arg(instFi.absoluteFilePath()));
-                return;
-            }
-
-            const qsizetype chunksize = 16384;
-            qsizetype bytesRead = 0;
-            QByteArray buffer;
-            buffer = srcf.read(chunksize);
-            while (buffer.length() > 0 && !t->isInterruptionRequested()) {
-                t->yieldCurrentThread();
-                p->setValue(bytesRead);
-                bytesRead += buffer.length();
-                tgtf.write(buffer);
+        // run async in with progress dialog UI
+        DRFXProgressDialog *dlg = new DRFXProgressDialog(this);
+        dlg->setMessage(tr("Please wait, install bundle: %1").arg(srcFi.fileName()));
+        dlg->setRange(0, (int) srcFi.size());
+        dlg->run(
+            [srcFi, instFi](DRFXProgressDialog *p, QThread *t) {
+                qDebug() << "[INST] Source file:" << srcFi.absoluteFilePath();
+                qDebug() << "[INST] Target file:" << instFi.absoluteFilePath();
+                
+                QFile srcf(srcFi.absoluteFilePath());
+                if (!srcf.open(QFile::ReadOnly)) {
+                    p->setError(tr("Could not open file: %1").arg(srcFi.absoluteFilePath()));
+                    return;
+                }
+                
+                QFile tgtf(instFi.absoluteFilePath());
+                if (!tgtf.open(QFile::WriteOnly | QFile::Truncate)) {
+                    srcf.close();
+                    p->setError(tr("Could not create file: %1").arg(instFi.absoluteFilePath()));
+                    return;
+                }
+                 
+                const int chunksize = 16384;
+                int bytesRead = 0;
+                QByteArray buffer;
                 buffer = srcf.read(chunksize);
-            }
+                while (buffer.length() > 0 && !t->isInterruptionRequested()) {
+                    t->yieldCurrentThread();
+                    p->setValue(bytesRead);
+                    bytesRead += buffer.length();
+                    tgtf.write(buffer);
+                    buffer = srcf.read(chunksize);
+                }
 
-            srcf.close();
-            tgtf.flush();
-            tgtf.close();
-        },
-        [](DRFXProgressDialog *p) { p->deleteLater(); });
+                srcf.close();
+                tgtf.flush();
+                tgtf.close();
+            },
+                 [this](DRFXProgressDialog *p) { //
+                     if (!p->isError()) {
+                         QMessageBox::information(this,
+                                                  qApp->applicationDisplayName(), //
+                                                  tr("DRFX bundle installation successfully."));
+                     }
+                     p->deleteLater();
+                 });
+    }
 }
 
 void MainWindow::onBuildError(DRFXBuilder *builder, const QString &message)
 {
-    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
     ui->pbBuildDRFX->setEnabled(true);
-    builder->disconnect(this);
+    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
     builder->deleteLater();
 }
 
@@ -638,14 +660,13 @@ void MainWindow::onBuildStarted(DRFXBuilder *)
 
 void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 {
+    ui->pbBuildDRFX->setEnabled(true);
+    setOutputName(fileName);
+    checkOutputExist();
     QMessageBox::information(this,
                              qApp->applicationDisplayName(), //
                              tr("Bundle file '%1' successfully built.").arg(fileName));
-    ui->pbBuildDRFX->setEnabled(true);
-    builder->disconnect(this);
     builder->deleteLater();
-    setOutputName(fileName);
-    checkOutputExist();
 }
 
 inline void MainWindow::postInitUi()
@@ -702,6 +723,7 @@ inline void MainWindow::updateTargetInfo()
 
 inline void MainWindow::checkOutputExist()
 {
+    qDebug() << "[CHK-OUT]" << m_outputName;
     if (QFile::exists(m_outputName)) {
         ui->pbImport->setDefault(false);
         ui->pbBuildDRFX->setDefault(false);
@@ -714,7 +736,7 @@ inline void MainWindow::checkBlackmagic()
 {
     // check which installed Fusion or Davinci or both
     if (m_appType == 0) {
-        QTimer::singleShot(50, this, [this] {
+        QTimer::singleShot(10, this, [this] {
             const QIcon icon(":/assets/dfrxbuilder.iconset/icon_32x32.png");
             // Fusion app
             const QDir fusion(macroPath(TAppType::ATFusion));
@@ -722,11 +744,9 @@ inline void MainWindow::checkBlackmagic()
             const QDir davinci(macroPath(TAppType::ATDavinci));
 
             int flags = 0;
-
             if (fusion.exists()) {
                 flags |= TAppType::ATFusion;
             }
-
             if (davinci.exists()) {
                 flags |= TAppType::ATDavinci;
             }
@@ -738,27 +758,42 @@ inline void MainWindow::checkBlackmagic()
                 mb.setText(tr("Davinci Resolve and Fusion found.\n" //
                               "Please select which one to use."));
                 mb.setIconPixmap(icon.pixmap(32, 32));
-                mb.setStandardButtons(QMessageBox::Button::Ok |  //
-                                      QMessageBox::Button::Yes | //
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+                mb.setStandardButtons(QMessageBox::Button::Yes | //
+                                      QMessageBox::Button::No |  //
                                       QMessageBox::Button::Cancel);
-                mb.setButtonText(QMessageBox::Button::Ok, tr("Davinci Resolve"));
-                mb.setButtonText(QMessageBox::Button::Yes, tr("Fusion"));
+                mb.setButtonText(QMessageBox::Button::Yes, tr("Davinci Resolve"));
+                mb.setButtonText(QMessageBox::Button::No, tr("Fusion"));
                 mb.setButtonText(QMessageBox::Button::Cancel, tr("Close"));
+#else
+                
+                QPushButton* cb = mb.addButton(QMessageBox::StandardButton::Cancel);
+                cb->tr("Close");
+                cb->setAutoDefault(false);
+                cb->setDefault(false);
+                
+                QPushButton* nb = mb.addButton(QMessageBox::StandardButton::Yes);
+                nb->setText(tr("DaVinci Resolve"));
+                nb->setDefault(true);
+                
+                QPushButton* yb = mb.addButton(QMessageBox::StandardButton::No);
+                yb->setText( tr("Fusion"));
+#endif
                 mb.setDefaultButton(QMessageBox::Button::Ok);
                 mb.setWindowTitle(qApp->applicationDisplayName());
                 switch (mb.exec()) {
                     case QMessageBox::Button::Yes: {
-                        setMacroPath(macroPath(TAppType::ATFusion));
-                        setInstallPath(templatePath(TAppType::ATFusion));
-                        setScriptPath(templatePath(TAppType::ATFusion));
-                        setAppType(TAppType::ATFusion);
-                        break;
-                    }
-                    case QMessageBox::Button::Ok: {
                         setMacroPath(macroPath(TAppType::ATDavinci));
                         setInstallPath(templatePath(TAppType::ATDavinci));
                         setScriptPath(templatePath(TAppType::ATDavinci));
                         setAppType(TAppType::ATDavinci);
+                        break;
+                    }
+                    case QMessageBox::Button::No: {
+                        setMacroPath(macroPath(TAppType::ATFusion));
+                        setInstallPath(templatePath(TAppType::ATFusion));
+                        setScriptPath(templatePath(TAppType::ATFusion));
+                        setAppType(TAppType::ATFusion);
                         break;
                     }
                     default: {
@@ -1312,18 +1347,31 @@ inline QString MainWindow::picturePath() const
         QStandardPaths::StandardLocation::PicturesLocation));
 }
 
-inline QString MainWindow::bundleOutputName() const
+inline QString MainWindow::bundleOutputPath() const
 {
     QString path = QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::DocumentsLocation);
-    return QDir::toNativeSeparators( //
-        path.append(QDir::separator()).append("bundle.drfx"));
+    if (!path.contains("Container")) //QT & OSX-Sandbox sucks
+        return path;
+    return homePath();
 }
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <assert.h>
 
 inline QString MainWindow::homePath() const
 {
+#if defined(OSX_SANDBOXED_APP)
+    auto p = getpwuid(getuid());
+    QString home = QString(p->pw_dir);
+    qDebug() << "Home path:" << home;
+    return QDir::toNativeSeparators(home);
+#else
     return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::HomeLocation));
+#endif
 }
 
 inline QString MainWindow::documentsPath() const

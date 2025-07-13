@@ -17,7 +17,8 @@ public:
     explicit DRFXProgressDialog(QWidget *parent = nullptr);
     ~DRFXProgressDialog();
     void run(const TWorkerCallback &worker, const TCompleteCallback &completion);
-
+    bool isError() const { return m_isError; }
+    
 signals:
     void progressReset();
     void updateRange(int minimum, int maximum);
@@ -38,4 +39,5 @@ public slots:
 
 private:
     Ui::DRFXProgressDialog *ui;
+    bool m_isError;
 };

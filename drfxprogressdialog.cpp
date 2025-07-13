@@ -6,6 +6,7 @@
 DRFXProgressDialog::DRFXProgressDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::DRFXProgressDialog)
+    , m_isError(false)
 {
     ui->setupUi(this);
     ui->progressBar->reset();
@@ -83,6 +84,7 @@ void DRFXProgressDialog::run(const TWorkerCallback &worker, const TCompleteCallb
 
 void DRFXProgressDialog::reset()
 {
+    m_isError = false;
     emit progressReset();
 }
 
@@ -113,5 +115,6 @@ void DRFXProgressDialog::setMessage(const QString &message)
 
 void DRFXProgressDialog::setError(const QString &message)
 {
+    m_isError = true;
     emit showError(message);
 }

@@ -38,12 +38,14 @@ void DRFXBuilder::build(QThread *t, QTreeWidgetItem *node)
 
     QZipWriter zip(QDir::toNativeSeparators(m_outputName));
     if (!zip.isWritable()) {
-        emit buildError(this, tr("Unable to create DRFX bundle file: %s").arg(m_outputName));
+        emit buildError(this, tr("Unable to create DRFX bundle: %1").arg(m_outputName));
         m_error = -EIO;
         return;
     }
     if ((m_error = createBundle(t, &zip, node, "/"))) {
-        emit buildError(this, tr("Unable to create DRFX bundle directory."));
+        //emit buildError(this, tr("Unable to write DRFX bundle: %1").arg(m_outputName));
+        zip.close();
+        return;
     }
     zip.close();
 
