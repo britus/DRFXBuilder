@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>EoF DRFX Builder</string>
+	<string>EoF DRFX Bundle Builder</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -38,11 +38,11 @@
 	<key>CFBundleIconFile</key>
 	<string>drfxbuilder.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.eof.tools.DRFXBuilder</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>EoF DRFX Builder</string>
+	<string>EoF DRFX Bundle Builder</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -59,7 +59,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.0.3</string>
+	<string>1.0.2</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>
