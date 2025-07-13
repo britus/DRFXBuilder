@@ -17,7 +17,8 @@ if [ -r ${PROJECT_DIR}/build/xcode/${XC_PROJECT} ] ; then
     xcodebuild -arch `uname -m` -project ${XC_PROJECT} -target DRFXBuilder
 else
     mkdir -p build/xcode
-    echo cd build/xcode && \
+	echo "Generate Xcode project in `pwd`/build/xcode ..."
+    cd build/xcode && \
         qmake -spec macx-xcode ../../${QT_PROJECT}
     echo "!!! ---- [ NOTE ] ---- !!!"
     echo "Now you have to open Xcode IDE and setup the bundle identifier, signing and capabilities."

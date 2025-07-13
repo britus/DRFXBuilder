@@ -29,8 +29,8 @@ Q_DECLARE_METATYPE(QTableWidgetItem *);
 
 #ifdef Q_OS_MACOS
 #define FUSION_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates"
-#define FUSION_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
+#define FUSION_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Templates"
+#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
 #define DAVINCI_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates"
 #endif
 
@@ -345,7 +345,7 @@ void MainWindow::on_pbNewBundle_clicked()
 {
     if (QMessageBox::question(this,
                               qApp->applicationDisplayName(), //
-                              tr("Do you want to create new bundle?"))) {
+                              tr("Do you want to create new bundle?")) == QMessageBox::Yes) {
         resetBundleStructure(ui->tvBundleStruct->topLevelItem(0));
         ui->pbBuildDRFX->setDefault(false);
         ui->pbBuildDRFX->setEnabled(false);
@@ -448,7 +448,7 @@ void MainWindow::on_pbDelete_clicked()
     if (twi) {
         if (QMessageBox::question(this,
                                   qApp->applicationDisplayName(), //
-                                  tr("Do you want to delete object: %1").arg(twi->text(0)))) {
+                                  tr("Do you want to delete object: %1").arg(twi->text(0))) == QMessageBox::Yes) {
             parent = twi->parent();
             parent->removeChild(twi);
             delete twi;
@@ -466,7 +466,7 @@ void MainWindow::on_pbBuildDRFX_clicked()
 {
     if (QMessageBox::question(this,
                               qApp->applicationDisplayName(), //
-                              tr("Do you want to build DRFX bundle?\nBundle: %1").arg(m_outputName))) {
+                              tr("Do you want to build DRFX bundle?\nBundle: %1").arg(m_outputName)) == QMessageBox::Yes) {
         const QFileInfo fi(m_outputName);
         DRFXBuilder *builder = new DRFXBuilder(m_outputName, this);
         connect(builder, &DRFXBuilder::buildStarted, this, &MainWindow::onBuildStarted, Qt::QueuedConnection);
