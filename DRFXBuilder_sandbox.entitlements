@@ -8,5 +8,27 @@
 	<array>
 		<string>group.org.eof.apps</string>
 	</array>
+    <key>com.apple.security.assets.movies.read-write</key>
+    <true/>
+    <key>com.apple.security.assets.music.read-write</key>
+    <true/>
+    <key>com.apple.security.assets.pictures.read-write</key>
+    <true/>
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <key>com.apple.security.files.home-relative-path.read-write</key>
+    <array>
+        <string>Library/Application Support/Blackmagic Design</string>
+        <string>Library/Application Support/Blackmagic Design/DaVinci Resolve</string>
+        <string>Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros</string>
+        <string>Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts</string>
+        <string>Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates</string>
+        <string>Library/Application Support/Blackmagic Design/Fusion</string>
+        <string>Library/Application Support/Blackmagic Design/Fusion/Macros</string>
+        <string>Library/Application Support/Blackmagic Design/Fusion/Scripts</string>
+        <string>Library/Application Support/Blackmagic Design/Fusion/Templates</string>
+    </array>
 </dict>
 </plist>
