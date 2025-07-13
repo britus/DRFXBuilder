@@ -22,6 +22,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+public slots:
+    void setMacroPath(const QString &path, const QString &fileName = "");
+    void setIconPath(const QString &path, const QString &fileName = "");
+    void setOutputName(const QString &fileName);
+    void setInstallPath(const QString &path);
+    void setScriptPath(const QString &path);
+    void setAppType(quint8 type);
+
 private slots:
     void onBuildError(DRFXBuilder *builder, const QString &);
     void onBuildStarted(DRFXBuilder *builder);
@@ -55,6 +63,7 @@ private:
     QString m_iconPath;
     QString m_outputName;
     QString m_installPath;
+    QString m_scriptPath;
     quint8 m_appType;
 
 private:
@@ -78,4 +87,19 @@ private:
     inline void selectTableRow(QTreeWidgetItem *node);
     inline void fillTableView(QTreeWidgetItem *node);
     inline void cleanupTableView();
+
+    inline QString configPath() const;
+    inline QString appDataPath() const;
+    inline QString appLocalDataPath() const;
+    inline QString configFile() const;
+    inline QString bundleStuctureFile() const;
+    inline QString picturePath() const;
+    inline QString bundleOutputName() const;
+    inline QString homePath() const;
+    inline QString documentsPath() const;
+    inline QString scriptPath(quint8 appType) const;
+    inline QString templatePath(quint8 appType) const;
+    inline QString macroPath(quint8 appType) const;
+    inline QString toHash(const QString &nodePath) const;
+    inline QString shortenText(const QString &value, int max) const;
 };

@@ -1,5 +1,5 @@
+#include "drfxtypes.h"
 #include "mainwindow.h"
-
 #include <QApplication>
 #include <QFile>
 #include <QLocale>
@@ -7,8 +7,8 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication::setApplicationDisplayName("EoF DRFX Builder");
-    QApplication::setApplicationName("EoF DRFX Builder");
+    QApplication::setApplicationDisplayName(APP_TITLE);
+    QApplication::setApplicationName(APP_TITLE);
     QApplication::setApplicationVersion("1.0.2");
     QApplication a(argc, argv);
 

@@ -27,85 +27,15 @@
 Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
 
-#ifdef Q_OS_MACOS
-#define FUSION_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Macros"
-#define FUSION_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/Fusion/Templates"
-#define DAVINCI_MACRO_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Macros"
-#define DAVINCI_TEMPLATE_PATH "${HOME}/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Templates"
-#endif
-
-#ifdef Q_OS_WINDOWS
-#define FUSION_MACRO_PATH "TODO"
-#define DAVINCI_MACRO_PATH "TODO"
-#endif
-
-#ifdef Q_OS_LINUX
-#define FUSION_MACRO_PATH "TODO"
-#define DAVINCI_MACRO_PATH "TODO"
-#endif
-
-inline static QString configFile()
-{
-    QString path = QStandardPaths::writableLocation( //
-        QStandardPaths::StandardLocation::ConfigLocation);
-    return path.append(QDir::separator()).append("eof_drfx_builder.conf");
-}
-
-inline static QString bundleStuctureFile()
-{
-    QString path = QStandardPaths::writableLocation( //
-        QStandardPaths::StandardLocation::ConfigLocation);
-    return path.append(QDir::separator()).append("eof_drfx_structure.conf");
-}
-
-inline static QString picturePath()
-{
-    return QStandardPaths::writableLocation( //
-        QStandardPaths::StandardLocation::PicturesLocation);
-}
-
-inline static QString bundleOutputName()
-{
-    QString path = QStandardPaths::writableLocation( //
-        QStandardPaths::StandardLocation::DocumentsLocation);
-    return path.append(QDir::separator()).append("bundle.drfx");
-}
-
-inline static QString homePath(const QString &path = "")
-{
-    QString home = QStandardPaths::writableLocation( //
-        QStandardPaths::StandardLocation::HomeLocation);
-    if (path.isEmpty())
-        return home;
-    QString p = path;
-    return p.replace("${HOME}", home, Qt::CaseInsensitive);
-}
-
-inline static QString toHash(const QString &nodePath)
-{
-    QByteArray hash = QCryptographicHash::hash( //
-        nodePath.toLocal8Bit(),                 //
-        QCryptographicHash::Algorithm::Sha1);
-    return hash.toHex();
-}
-
-inline static QString shortenText(const QString &value, int max)
-{
-    QString result = value;
-    if (result.length() > max && (max / 2) > 0) {
-        result = result.left(max / 2) + " ... " + result.right(max / 2);
-    }
-    return result;
-}
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_settings(configFile(), QSettings::Format::NativeFormat)
-    , m_macroPath(homePath(DAVINCI_MACRO_PATH))
+    , m_macroPath(macroPath(TAppType::ATDavinci))
     , m_iconPath(picturePath())
     , m_outputName(bundleOutputName())
-    , m_installPath(homePath(DAVINCI_TEMPLATE_PATH))
+    , m_installPath(templatePath(TAppType::ATDavinci))
+    , m_scriptPath(scriptPath(TAppType::ATDavinci))
 {
     ui->setupUi(this);
 
@@ -147,23 +77,19 @@ MainWindow::MainWindow(QWidget *parent)
         saveBundleStructure();
         m_settings.setValue("window.width", geometry().width()); //
         m_settings.setValue("window.height", geometry().height());
-        // write app settings
         m_settings.sync();
         if (m_settings.status() != QSettings::NoError) {
             qCritical("Unable to write settings file.");
         }
-        // terminate scanner thread
-        //if (m_thread != nullptr) {
-        //    m_thread->requestInterruption();
-        //    m_thread->wait();
-        //}
     });
 
-    m_appType = m_settings.value("app.type", 0).toUInt();
+    /* load settings / defaults */
+    m_appType = m_settings.value("app.type", TAppType::ATNone).toUInt();
     m_outputName = m_settings.value("output.name", m_outputName).toString();
     m_installPath = m_settings.value("install.path", m_installPath).toString();
     m_macroPath = m_settings.value("macro.path", m_macroPath).toString();
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
+    m_scriptPath = m_settings.value("script.path", m_scriptPath).toString();
 
     // async update ui fields
     checkBlackmagic();
@@ -174,13 +100,53 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setAppType(quint8 type)
+{
+    m_appType = type;
+    m_settings.setValue("app.type", m_appType);
+}
+
+void MainWindow::setScriptPath(const QString &path)
+{
+    m_scriptPath = path;
+    m_settings.setValue("script.path", m_scriptPath);
+}
+
+void MainWindow::setInstallPath(const QString &path)
+{
+    m_installPath = path;
+    m_settings.setValue("install.path", m_installPath);
+}
+
+void MainWindow::setOutputName(const QString &fileName)
+{
+    m_outputName = fileName;
+    m_settings.setValue("output.name", m_outputName);
+}
+
+void MainWindow::setIconPath(const QString &path, const QString &fileName)
+{
+    m_iconPath = path;
+    m_settings.setValue("icon.path", m_iconPath);
+    if (!fileName.isEmpty()) {
+        m_settings.setValue("icon.file", fileName);
+    }
+}
+
+void MainWindow::setMacroPath(const QString &path, const QString &fileName)
+{
+    m_macroPath = path;
+    m_settings.setValue("macro.path", m_macroPath);
+    if (!fileName.isEmpty()) {
+        m_settings.setValue("macro.file", fileName);
+    }
+}
+
 void MainWindow::on_edFusionMacro_textChanged(const QString &value)
 {
     ui->edFusionMacro->setStatusTip(shortenText(value, 80));
     const QFileInfo fi(value);
-    m_macroPath = fi.absolutePath();
-    m_settings.setValue("macro.file", value);
-    m_settings.setValue("macro.path", m_macroPath);
+    setMacroPath(fi.absolutePath(), value);
     checkInputFields();
     updateTargetInfo();
 }
@@ -194,9 +160,7 @@ void MainWindow::on_edIconFile_textChanged(const QString &value)
 {
     ui->edIconFile->setStatusTip(shortenText(value, 80));
     const QFileInfo fi(value);
-    m_iconPath = fi.absolutePath();
-    m_settings.setValue("icon.file", value);
-    m_settings.setValue("icon.path", m_iconPath);
+    setIconPath(fi.absolutePath(), value);
     checkInputFields();
     updateTargetInfo();
 }
@@ -221,6 +185,8 @@ void MainWindow::on_edCompany_textEdited(const QString &value)
 void MainWindow::on_edProduct_textChanged(const QString &value)
 {
     m_settings.setValue("product", value);
+    setOutputName(QDir::toNativeSeparators( //
+        QStringLiteral("%1/%2.drfx").arg(templatePath(m_appType), value)));
     checkInputFields();
     updateTargetInfo();
 }
@@ -253,19 +219,19 @@ void MainWindow::on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, 
     }
     const TNodeData nd = v.value<TNodeData>();
     switch (nd.type) {
-        case TNodeType::Company: {
+        case TNodeType::NTCompany: {
             ui->edCompany->setText(nd.name);
             cleanupTableView();
             break;
         }
         // add to table view if product node
-        case TNodeType::Product: {
+        case TNodeType::NTProduct: {
             ui->edProduct->setText(nd.name);
             fillTableView(current);
             break;
         }
         // select item in table view
-        case TNodeType::FileItem: {
+        case TNodeType::NTFileItem: {
             fillTableView(current->parent());
             selectTableRow(current);
             break;
@@ -293,15 +259,15 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
     }
     const TNodeData nd = data.value<TNodeData>();
     switch (nd.type) {
-        case TNodeType::Company: {
+        case TNodeType::NTCompany: {
             ui->edCompany->setText(nd.name);
             break;
         }
-        case TNodeType::Product: {
+        case TNodeType::NTProduct: {
             ui->edProduct->setText(nd.name);
             break;
         }
-        case TNodeType::FileItem: {
+        case TNodeType::NTFileItem: {
             QTreeWidgetItem *twi;
             // iterate overall treeview
             if ((twi = findNodeByHash(ui->tvBundleStruct->topLevelItem(0), nd.hash))) {
@@ -324,14 +290,14 @@ void MainWindow::on_twNodeList_itemClicked(QTableWidgetItem *item)
     if (!v.isNull() && v.isValid()) {
         switch (ui->twNodeList->column(item)) {
             case 0: {
-                enabled = v.value<TNodeData>().type == TNodeType::FileItem;
+                enabled = v.value<TNodeData>().type == TNodeType::NTFileItem;
                 break;
             }
             case 1: {
                 if ((twi = v.value<QTreeWidgetItem *>())) {
                     v = twi->data(0, Qt::ItemDataRole::UserRole);
                     if (!v.isNull() && v.isValid()) {
-                        enabled = v.value<TNodeData>().type == TNodeType::FileItem;
+                        enabled = v.value<TNodeData>().type == TNodeType::NTFileItem;
                     }
                 }
                 break;
@@ -345,7 +311,8 @@ void MainWindow::on_pbNewBundle_clicked()
 {
     if (QMessageBox::question(this,
                               qApp->applicationDisplayName(), //
-                              tr("Do you want to create new bundle?")) == QMessageBox::Yes) {
+                              tr("Do you want to create new bundle?"))
+        == QMessageBox::Yes) {
         resetBundleStructure(ui->tvBundleStruct->topLevelItem(0));
         ui->pbBuildDRFX->setDefault(false);
         ui->pbBuildDRFX->setEnabled(false);
@@ -364,8 +331,7 @@ void MainWindow::on_pbSelectMacro_clicked()
     });
     connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
         qDebug("Directory entered: %s", qPrintable(directory));
-        m_settings.setValue("macro.path", directory);
-        m_macroPath = directory;
+        setMacroPath(directory);
     });
 
     d.setWindowTitle(tr("Select Fusion macro file"));
@@ -393,7 +359,7 @@ void MainWindow::on_pbSelectIcon_clicked()
     connect(&d, &QFileDialog::directoryEntered, this, [this](const QString &directory) {
         qDebug("Directory entered: %s", qPrintable(directory));
         m_settings.setValue("icon.path", directory);
-        m_iconPath = directory;
+        setIconPath(directory);
     });
 
     d.setWindowTitle(tr("Select icon file"));
@@ -448,7 +414,8 @@ void MainWindow::on_pbDelete_clicked()
     if (twi) {
         if (QMessageBox::question(this,
                                   qApp->applicationDisplayName(), //
-                                  tr("Do you want to delete object: %1").arg(twi->text(0))) == QMessageBox::Yes) {
+                                  tr("Do you want to delete object: %1").arg(twi->text(0)))
+            == QMessageBox::Yes) {
             parent = twi->parent();
             parent->removeChild(twi);
             delete twi;
@@ -464,53 +431,58 @@ void MainWindow::on_pbDelete_clicked()
 
 void MainWindow::on_pbBuildDRFX_clicked()
 {
-    if (QMessageBox::question(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Do you want to build DRFX bundle?\nBundle: %1").arg(m_outputName)) == QMessageBox::Yes) {
-        const QFileInfo fi(m_outputName);
-        DRFXBuilder *builder = new DRFXBuilder(m_outputName, this);
-        connect(builder, &DRFXBuilder::buildStarted, this, &MainWindow::onBuildStarted, Qt::QueuedConnection);
-        connect(builder, &DRFXBuilder::buildComplete, this, &MainWindow::onBuildComplete, Qt::QueuedConnection);
-        connect(builder, &DRFXBuilder::buildError, this, &MainWindow::onBuildError, Qt::QueuedConnection);
+    const QFileInfo fi(m_outputName);
+    // the builder job
+    DRFXBuilder *builder = new DRFXBuilder(m_outputName, this);
+    connect(builder, &DRFXBuilder::buildStarted, this, &MainWindow::onBuildStarted, Qt::QueuedConnection);
+    connect(builder, &DRFXBuilder::buildComplete, this, &MainWindow::onBuildComplete, Qt::QueuedConnection);
+    connect(builder, &DRFXBuilder::buildError, this, &MainWindow::onBuildError, Qt::QueuedConnection);
 
-        QFileDialog d(this);
-        connect(&d, &QFileDialog::fileSelected, this, [this, builder](const QString &file) {
-            qDebug("Directory selected: %s", qPrintable(file));
-            m_settings.setValue("output.name", file);
-            builder->setOutputName(file);
-        });
-        connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
-            qDebug("Directory entered: %s", qPrintable(directory));
-        });
+    QFileDialog d(this);
+    connect(&d, &QFileDialog::fileSelected, this, [this, builder](const QString &file) {
+        qDebug("Directory selected: %s", qPrintable(file));
+        setOutputName(file);
+        builder->setOutputName(file);
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
+        qDebug("Directory entered: %s", qPrintable(directory));
+    });
 
-        d.setWindowTitle(tr("Save DRFX bundle file"));
-        d.setWindowFilePath(fi.absolutePath());
-        d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
-        d.setFileMode(QFileDialog::FileMode::AnyFile);
-        d.setDirectory(fi.absolutePath());
-        d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle file:"));
-        d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension (.drfx):");
-        d.setOption(QFileDialog::DontConfirmOverwrite, true);
-        d.setOption(QFileDialog::DontUseNativeDialog, false);
-        d.setNameFilters(QStringList() << "*.drfx" << "*.*");
-        d.setHistory(QStringList() << fi.fileName());
-        d.setDefaultSuffix(".drfx");
-        if (d.exec() == QFileDialog::Accepted) {
-            builder->build(ui->tvBundleStruct->topLevelItem(0));
-        }
+    d.setWindowTitle(tr("Save DRFX bundle file"));
+    d.setWindowFilePath(fi.absoluteFilePath());
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
+    d.setFileMode(QFileDialog::FileMode::AnyFile);
+    d.setDirectory(fi.absolutePath());
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle file:"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension (.drfx):");
+    d.setOption(QFileDialog::DontConfirmOverwrite, true);
+    d.setOption(QFileDialog::DontUseNativeDialog, false);
+    d.setNameFilters(QStringList() << "*.drfx" << "*.*");
+    d.setHistory(QStringList() << fi.fileName());
+    d.setDefaultSuffix(".drfx");
+    if (d.exec() == QFileDialog::Accepted) {
+        builder->build(ui->tvBundleStruct->topLevelItem(0));
     }
 }
 
 void MainWindow::on_pbInstall_clicked()
 {
-    QFileInfo srcfi(m_outputName);
-    QString fname = QDir::toNativeSeparators(m_installPath + QDir::separator() + srcfi.fileName());
+    QFileInfo outFi(m_outputName);
+    QFileInfo instFi(QDir::toNativeSeparators( //
+        QStringLiteral("%1/%2").arg(m_installPath, outFi.fileName())));
 
-    if (QFile::exists(fname)) {
-        QFileInfo tgtfi(fname);
-        QDateTime tdt = tgtfi.fileTime(QFile::FileTime::FileModificationTime);
-        QDateTime sdt = srcfi.fileTime(QFile::FileTime::FileModificationTime);
-        if (tgtfi.size() == srcfi.size() && tdt == sdt) {
+    if (QMessageBox::question(this,
+                              qApp->applicationDisplayName(),                       //
+                              tr("Do you want to install DRFX bundle?\nBundle: %1") //
+                                  .arg(instFi.absoluteFilePath()))
+        == QMessageBox::No) {
+        return;
+    }
+
+    if (QFile::exists(instFi.absoluteFilePath())) {
+        QDateTime tdt = instFi.fileTime(QFile::FileTime::FileModificationTime);
+        QDateTime sdt = outFi.fileTime(QFile::FileTime::FileModificationTime);
+        if (instFi.size() == outFi.size() && tdt == sdt) {
             QMessageBox::critical(this,
                                   qApp->applicationDisplayName(), //
                                   tr("Target file is identical to source file."));
@@ -519,20 +491,20 @@ void MainWindow::on_pbInstall_clicked()
     }
 
     DRFXProgressDialog *dlg = new DRFXProgressDialog(this);
-    dlg->setMessage(tr("Please wait, install bundle: %1").arg(srcfi.fileName()));
-    dlg->setRange(0, srcfi.size());
+    dlg->setMessage(tr("Please wait, install bundle: %1").arg(outFi.fileName()));
+    dlg->setRange(0, outFi.size());
     dlg->run(
-        [this, fname](DRFXProgressDialog *p, QThread *t) {
+        [this, outFi, instFi](DRFXProgressDialog *p, QThread *t) {
             QFile srcf(m_outputName);
             if (!srcf.open(QFile::ReadOnly)) {
-                p->setError(tr("Could not open file: %1").arg(m_outputName));
+                p->setError(tr("Could not open file: %1").arg(outFi.absoluteFilePath()));
                 return;
             }
 
-            QFile tgtf(fname);
+            QFile tgtf(instFi.absoluteFilePath());
             if (!tgtf.open(QFile::WriteOnly | QFile::Truncate)) {
                 srcf.close();
-                p->setError(tr("Could not create file: %1").arg(fname));
+                p->setError(tr("Could not create file: %1").arg(instFi.absoluteFilePath()));
                 return;
             }
 
@@ -572,11 +544,11 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 {
     QMessageBox::information(this,
                              qApp->applicationDisplayName(), //
-                             tr("Bundle file '%1' successfully created.").arg(fileName));
+                             tr("Bundle file '%1' successfully built.").arg(fileName));
     ui->pbBuildDRFX->setEnabled(true);
     builder->disconnect(this);
     builder->deleteLater();
-    m_outputName = fileName;
+    setOutputName(fileName);
     checkOutputExist();
 }
 
@@ -648,22 +620,23 @@ inline void MainWindow::checkBlackmagic()
     if (m_appType == 0) {
         QTimer::singleShot(50, this, [this] {
             const QIcon icon(":/assets/dfrxbuilder.iconset/icon_32x32.png");
-            const QDir dbmf(homePath(FUSION_MACRO_PATH));
-            const QDir dbmd(homePath(DAVINCI_MACRO_PATH));
-            const QDir dbif(homePath(FUSION_TEMPLATE_PATH));
-            const QDir dbid(homePath(DAVINCI_TEMPLATE_PATH));
+            // Fusion app
+            const QDir fusion(macroPath(TAppType::ATFusion));
+            // Davinci Resolve app
+            const QDir davinci(macroPath(TAppType::ATDavinci));
+
             int flags = 0;
 
-            if (dbmf.exists()) {
-                flags |= 0x01;
+            if (fusion.exists()) {
+                flags |= TAppType::ATFusion;
             }
 
-            if (dbmd.exists()) {
-                flags |= 0x02;
+            if (davinci.exists()) {
+                flags |= TAppType::ATDavinci;
             }
 
             // both: ask user
-            if ((flags & 0x03) == 0x03) {
+            if ((flags & TAppType::ATBoth) == TAppType::ATBoth) {
                 QMessageBox mb(this);
                 mb.setTextFormat(Qt::TextFormat::PlainText);
                 mb.setText(tr("Davinci Resolve and Fusion found.\n" //
@@ -679,15 +652,17 @@ inline void MainWindow::checkBlackmagic()
                 mb.setWindowTitle(qApp->applicationDisplayName());
                 switch (mb.exec()) {
                     case QMessageBox::Button::Yes: {
-                        m_macroPath = dbmf.absolutePath();
-                        m_installPath = dbif.absolutePath();
-                        m_appType = 1;
+                        setMacroPath(macroPath(TAppType::ATFusion));
+                        setInstallPath(templatePath(TAppType::ATFusion));
+                        setScriptPath(templatePath(TAppType::ATFusion));
+                        setAppType(TAppType::ATFusion);
                         break;
                     }
                     case QMessageBox::Button::Ok: {
-                        m_macroPath = dbmd.absolutePath();
-                        m_installPath = dbid.absolutePath();
-                        m_appType = 2;
+                        setMacroPath(macroPath(TAppType::ATDavinci));
+                        setInstallPath(templatePath(TAppType::ATDavinci));
+                        setScriptPath(templatePath(TAppType::ATDavinci));
+                        setAppType(TAppType::ATDavinci);
                         break;
                     }
                     default: {
@@ -697,18 +672,19 @@ inline void MainWindow::checkBlackmagic()
                 }
             }
             // fusion
-            else if ((flags & 0x01) == 0x01) {
-                m_macroPath = dbmf.absolutePath();
-                m_installPath = dbif.absolutePath();
+            else if ((flags & TAppType::ATFusion) == TAppType::ATFusion) {
+                setMacroPath(macroPath(TAppType::ATFusion));
+                setInstallPath(templatePath(TAppType::ATFusion));
+                setScriptPath(templatePath(TAppType::ATFusion));
+                setAppType(TAppType::ATFusion);
             }
             // davinci
-            else if ((flags & 0x02) == 0x02) {
-                m_macroPath = dbmd.absolutePath();
-                m_installPath = dbid.absolutePath();
+            else if ((flags & TAppType::ATDavinci) == TAppType::ATDavinci) {
+                setMacroPath(macroPath(TAppType::ATDavinci));
+                setInstallPath(templatePath(TAppType::ATDavinci));
+                setScriptPath(templatePath(TAppType::ATDavinci));
+                setAppType(TAppType::ATDavinci);
             }
-            m_settings.setValue("macro.path", m_macroPath);
-            m_settings.setValue("install.path", m_installPath);
-            m_settings.setValue("app.type", m_appType);
             postInitUi();
         });
     } else {
@@ -744,7 +720,7 @@ inline void MainWindow::cbxAddBundleItems(QTreeWidgetItem *node, const QString &
 
     const QVariant data = node->data(0, Qt::UserRole);
     if (data.isNull() || !data.isValid()) {
-        TNodeData nd = {Static, toHash(title), title, vt.toString()};
+        TNodeData nd = {NTStatic, toHash(title), title, vt.toString()};
         node->setData(0, Qt::UserRole, QVariant::fromValue(nd));
     }
 
@@ -769,7 +745,7 @@ inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
                 continue;
             }
             const TNodeData nd = data.value<TNodeData>();
-            if (nd.type == TNodeType::Product) {
+            if (nd.type == TNodeType::NTProduct) {
                 result = true;
                 break;
             }
@@ -812,9 +788,22 @@ inline void MainWindow::saveBundleStructure()
         return;
     }
 
-    QFile f(bundleStuctureFile());
-    if (!f.open(QFile::Truncate | QFile::ReadWrite)) {
-        QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Unable to save bundle structure."));
+    QFileInfo fi(bundleStuctureFile());
+    QDir dir(fi.absolutePath());
+    if (!dir.exists()) {
+        if (!dir.mkpath(fi.absolutePath())) {
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Unable to create directory %1").arg(fi.absolutePath()));
+            return;
+        }
+    }
+
+    QFile f(fi.absoluteFilePath());
+    if (!f.open(QFile::Truncate | QFile::WriteOnly)) {
+        QMessageBox::critical(this, //
+                              qApp->applicationDisplayName(),
+                              tr("Unable to save bundle structure."));
         return;
     }
 
@@ -832,7 +821,7 @@ inline void MainWindow::saveBundleStructure()
 
 inline QTreeWidgetItem *MainWindow::addCompanyNode(QTreeWidgetItem *node, const QString &name, const QString &path)
 {
-    const TNodeData data = {TNodeType::Company, toHash(path), path, name};
+    const TNodeData data = {TNodeType::NTCompany, toHash(path), path, name};
     QTreeWidgetItem *child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
     child->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
     child->setData(0, Qt::UserRole, QVariant::fromValue(data));
@@ -842,7 +831,7 @@ inline QTreeWidgetItem *MainWindow::addCompanyNode(QTreeWidgetItem *node, const 
 
 inline QTreeWidgetItem *MainWindow::addProductNode(QTreeWidgetItem *node, const QString &name, const QString &path)
 {
-    const TNodeData data = {TNodeType::Product, toHash(path), path, name};
+    const TNodeData data = {TNodeType::NTProduct, toHash(path), path, name};
     QTreeWidgetItem *child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
     child->setData(0, Qt::DisplayRole, QVariant::fromValue(data.name));
     child->setData(0, Qt::UserRole, QVariant::fromValue(data));
@@ -853,9 +842,9 @@ inline QTreeWidgetItem *MainWindow::addProductNode(QTreeWidgetItem *node, const 
 inline int MainWindow::addFileNode(QTreeWidgetItem *node, int errorBits, const QString &fileName)
 {
     // add icon file name
-    const QFileInfo info = QFileInfo(fileName);
-    const QString fname = info.fileName();
-    const TNodeData data = {TNodeType::FileItem, toHash(info.filePath()), info.filePath(), fname};
+    const QFileInfo fi(fileName);
+    const QString fname = fi.fileName();
+    const TNodeData data = {TNodeType::NTFileItem, toHash(fi.filePath()), fi.filePath(), fname};
     QTreeWidgetItem *child;
 
     if (findNodeByHash(ui->tvBundleStruct->topLevelItem(0), data.hash)) {
@@ -895,14 +884,6 @@ inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
         child = addProductNode(comp, ui->edProduct->text(), _path);
         state = 0xe0;
     }
-
-#if 0
-    if (!(child = findCompanyAndProduct(root))) {
-        child = addProductNode(root, ui->edCompany->text(), path);
-        child = addProductNode(child, ui->edProduct->text(), path + "/" + ui->edProduct->text());
-        state = 0xf0;
-    }
-#endif
 
     state |= addFileNode(child, 0x01, ui->edFusionMacro->text());
     state |= addFileNode(child, 0x02, ui->edIconFile->text());
@@ -944,7 +925,7 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
         const TNodeData ndChild = vChild.value<TNodeData>();
 
         // skip if not file node
-        if (ndChild.type == TNodeType::Static || ndChild.type == TNodeType::None) {
+        if (ndChild.type == TNodeType::NTStatic || ndChild.type == TNodeType::NTNone) {
             continue;
         }
 
@@ -960,7 +941,6 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
 
         QJsonObject jo;
         jo["node.parent"] = ndParent.hash;
-        //jo["data.hash"] = QJsonValue(hash);
         jo["node.type"] = QJsonValue(ndChild.type);
         jo["data.name"] = QJsonValue(ndChild.name);
         jo["data.path"] = QJsonValue(ndChild.path);
@@ -982,13 +962,17 @@ inline bool MainWindow::loadBundleStructure()
     f.close();
 
     if (error.error != QJsonParseError::NoError) {
-        QMessageBox::critical(this, qApp->applicationDisplayName(), error.errorString());
+        QMessageBox::critical(this, //
+                              qApp->applicationDisplayName(),
+                              error.errorString());
         return false;
     }
 
     const QJsonObject jroot = jdoc.object();
     if (jroot.isEmpty()) {
-        QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Could not load bundle structure."));
+        QMessageBox::critical(this, //
+                              qApp->applicationDisplayName(),
+                              tr("Could not load bundle structure."));
         return false;
     }
 
@@ -999,31 +983,39 @@ inline bool MainWindow::loadBundleStructure()
         const QJsonObject jo = jroot[key].toObject();
 
         if (!jo.contains("node.parent")) {
-            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node parent missing in bundle file."));
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Node parent missing in bundle file."));
             return false;
         }
         const QString nodeParent = jo["node.parent"].toString();
 
         if (!jo.contains("node.type")) {
-            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node type missing in bundle file."));
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Node type missing in bundle file."));
             return false;
         }
         const int nodeType = jo["node.type"].toInt();
 
         if (!jo.contains("data.name")) {
-            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node name missing in bundle file."));
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Node name missing in bundle file."));
             return false;
         }
         const QString nodeName = jo["data.name"].toString();
 
         if (!jo.contains("data.path")) {
-            QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Node path missing in bundle file."));
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Node path missing in bundle file."));
             return false;
         }
         const QString nodePath = jo["data.path"].toString();
 
         switch (nodeType) {
-            case TNodeType::Company: {
+            case TNodeType::NTCompany: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
                     if (!findNodeByHash(parent, toHash(nodePath))) {
                         addCompanyNode(parent, nodeName, nodePath);
@@ -1031,7 +1023,7 @@ inline bool MainWindow::loadBundleStructure()
                 }
                 break;
             }
-            case TNodeType::Product: {
+            case TNodeType::NTProduct: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
                     if (!findNodeByHash(parent, toHash(nodePath))) {
                         addProductNode(parent, nodeName, nodePath);
@@ -1039,7 +1031,7 @@ inline bool MainWindow::loadBundleStructure()
                 }
                 break;
             }
-            case TNodeType::FileItem: {
+            case TNodeType::NTFileItem: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
                     if (addFileNode(parent, 0x04, nodePath) != 0) {
                         QMessageBox::critical(this,
@@ -1051,7 +1043,9 @@ inline bool MainWindow::loadBundleStructure()
                 break;
             }
             default: {
-                QMessageBox::critical(this, qApp->applicationDisplayName(), tr("Invalid node type detected."));
+                QMessageBox::critical(this, //
+                                      qApp->applicationDisplayName(),
+                                      tr("Invalid node type detected."));
                 return false;
             }
         }
@@ -1106,7 +1100,7 @@ inline void MainWindow::fillTableView(QTreeWidgetItem *node)
             continue;
         }
         const TNodeData nd = data.value<TNodeData>();
-        if (nd.type != TNodeType::FileItem) {
+        if (nd.type != TNodeType::NTFileItem) {
             continue;
         }
 
@@ -1154,7 +1148,7 @@ inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
             continue;
         }
         TNodeData nd = v.value<TNodeData>();
-        if (nd.type == TNodeType::Static || nd.type == TNodeType::None) {
+        if (nd.type == TNodeType::NTStatic || nd.type == TNodeType::NTNone) {
             continue;
         }
         removeList.append(child);
@@ -1164,4 +1158,131 @@ inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
         node->removeChild(item);
         delete item;
     }
+}
+
+inline QString MainWindow::configPath() const
+{
+    // MACOSX: Library/Preferences/EoF DRFX Builder/
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::AppConfigLocation));
+}
+
+inline QString MainWindow::appDataPath() const
+{
+    // MACOSX: Library/Application Support/EoF DRFX Builder/
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::AppDataLocation));
+}
+
+inline QString MainWindow::appLocalDataPath() const
+{
+    // MACOSX: Library/Application Support/EoF DRFX Builder/
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::AppLocalDataLocation));
+}
+
+inline QString MainWindow::configFile() const
+{
+    return QDir::toNativeSeparators( //
+        configPath().append(QDir::separator()).append("settings.conf"));
+}
+
+inline QString MainWindow::bundleStuctureFile() const
+{
+    return QDir::toNativeSeparators( //
+        appLocalDataPath().append(QDir::separator()).append("structure.conf"));
+}
+
+inline QString MainWindow::picturePath() const
+{
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::PicturesLocation));
+}
+
+inline QString MainWindow::bundleOutputName() const
+{
+    QString path = QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::DocumentsLocation);
+    return QDir::toNativeSeparators( //
+        path.append(QDir::separator()).append("bundle.drfx"));
+}
+
+inline QString MainWindow::homePath() const
+{
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::HomeLocation));
+}
+
+inline QString MainWindow::documentsPath() const
+{
+    return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
+        QStandardPaths::StandardLocation::DocumentsLocation));
+}
+
+inline QString MainWindow::scriptPath(quint8 appType) const
+{
+    switch (appType) {
+        case TAppType::ATDavinci: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), DAVINCI_SCRIPT_PATH));
+        }
+        case TAppType::ATFusion: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), FUSION_SCRIPT_PATH));
+        }
+        default: {
+            return documentsPath();
+        }
+    }
+}
+
+inline QString MainWindow::templatePath(quint8 appType) const
+{
+    switch (appType) {
+        case TAppType::ATDavinci: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), DAVINCI_TEMPLATE_PATH));
+        }
+        case TAppType::ATFusion: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), FUSION_TEMPLATE_PATH));
+        }
+        default: {
+            return documentsPath();
+        }
+    }
+}
+
+inline QString MainWindow::macroPath(quint8 appType) const
+{
+    switch (appType) {
+        case TAppType::ATDavinci: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), DAVINCI_MACRO_PATH));
+        }
+        case TAppType::ATFusion: {
+            return QDir::toNativeSeparators( //
+                QStringLiteral("%1/%2").arg(homePath(), FUSION_MACRO_PATH));
+        }
+        default: {
+            return documentsPath();
+        }
+    }
+}
+
+inline QString MainWindow::toHash(const QString &nodePath) const
+{
+    QByteArray hash = QCryptographicHash::hash( //
+        nodePath.toLocal8Bit(),                 //
+        QCryptographicHash::Algorithm::Sha1);
+    return hash.toHex();
+}
+
+inline QString MainWindow::shortenText(const QString &value, int max) const
+{
+    QString result = value;
+    if (result.length() > max && (max / 2) > 0) {
+        result = result.left(max / 2) + " ... " + result.right(max / 2);
+    }
+    return result;
 }

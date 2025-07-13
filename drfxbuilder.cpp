@@ -91,14 +91,14 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
     }
 
     TNodeData nd = v.value<TNodeData>();
-    if (nd.type == TNodeType::None) {
+    if (nd.type == TNodeType::NTNone) {
         return -EINVAL;
     }
 
     switch (nd.type) {
-        case TNodeType::Static:
-        case TNodeType::Company:
-        case TNodeType::Product: {
+        case TNodeType::NTStatic:
+        case TNodeType::NTCompany:
+        case TNodeType::NTProduct: {
             const QFile::Permissions permissions = QFile::Permissions( //
                 QFile::ReadUser | QFile::WriteUser | QFile::ExeUser |  //
                 QFile::ReadGroup | QFile::ExeGroup |                   //
@@ -112,11 +112,11 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
             }
             break;
         }
-        case TNodeType::FileItem: {
-            QFileInfo srcfi(nd.path);
-            QString zipName = srcfi.baseName();
-            if (!srcfi.suffix().isEmpty()) {
-                zipName += "." + srcfi.suffix();
+        case TNodeType::NTFileItem: {
+            QFileInfo srcFi(nd.path);
+            QString zipName = srcFi.baseName();
+            if (!srcFi.suffix().isEmpty()) {
+                zipName += "." + srcFi.suffix();
             }
             QFile inFile(nd.path);
             if (!inFile.open(QIODevice::ReadOnly)) {

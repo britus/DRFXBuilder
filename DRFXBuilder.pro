@@ -8,8 +8,8 @@ else:TEMPLATE = app
 
 TARGET = DRFXBuilder
 
-win32:VERSION = 0.1.3.2 # major.minor.patch.build
-else:VERSION = 0.1.3    # major.minor.patch
+win32:VERSION = 1.0.2.8 # major.minor.patch.build
+else:VERSION = 1.0.2    # major.minor.patch
 
 # Defaults
 CONFIG += c++17
@@ -174,6 +174,6 @@ DISTFILES += \
 	README.md \
 	appstyle.css \
 	deploy.sh \
-	drfxbutton.lua \
+	DRFXBuilder.lua \
 	make.sh \
 	qmake-options.txt
