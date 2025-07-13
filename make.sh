@@ -21,7 +21,7 @@ else
     cd build/xcode && \
         qmake -spec macx-xcode ../../${QT_PROJECT}
 	cd build/xcode && \
-		ln -s ../../DRFXBuilder_sanbox.entitlements DRFXBuilder.entitlements
+		ln -s ../../DRFXBuilder_sandbox.entitlements DRFXBuilder.entitlements
     echo "!!! ---- [ NOTE ] ---- !!!"
     echo "Now you have to open Xcode IDE and setup the bundle identifier, signing and capabilities."
     echo "Also you have to add QT framework bundles to copy into app directory!."
