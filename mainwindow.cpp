@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     setStyleSheet(qApp->styleSheet());
 
     ui->statusbar->setSizeGripEnabled(true);
-    ui->statusbar->showMessage(tr("%1 %2 Copyright (c) 2025 by EoF Software Labs") //
+    ui->statusbar->showMessage(tr("%1 %2 Copyright © 2025 by EoF Software Labs") //
                                    .arg(qApp->applicationDisplayName(), qApp->applicationVersion()),
                                20000);
 
