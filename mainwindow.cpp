@@ -635,11 +635,9 @@ void MainWindow::on_pbInstall_clicked()
                 tgtf.flush();
                 tgtf.close();
             },
-                 [this](DRFXProgressDialog *p) { //
+                 [](DRFXProgressDialog *p) { //
                      if (!p->isError()) {
-                         QMessageBox::information(this,
-                                                  qApp->applicationDisplayName(), //
-                                                  tr("DRFX bundle installation successfully."));
+                         p->complete(tr("DRFX bundle installation successfully."));
                      }
                      p->deleteLater();
                  });

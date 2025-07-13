@@ -17,6 +17,7 @@ public:
     explicit DRFXProgressDialog(QWidget *parent = nullptr);
     ~DRFXProgressDialog();
     void run(const TWorkerCallback &worker, const TCompleteCallback &completion);
+    void complete(const QString& message);
     bool isError() const { return m_isError; }
     
 signals:
@@ -27,6 +28,7 @@ signals:
     void updateValue(int value);
     void updateText(const QString &message);
     void showError(const QString &message);
+    void showComplete(const QString& message);
 
 public slots:
     void reset();
@@ -36,6 +38,7 @@ public slots:
     void setValue(int value);
     void setMessage(const QString &message);
     void setError(const QString &message);
+    void onComplete(const QString &message);
 
 private:
     Ui::DRFXProgressDialog *ui;

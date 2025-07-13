@@ -43,7 +43,7 @@ void DRFXBuilder::build(QThread *t, QTreeWidgetItem *node)
         return;
     }
     if ((m_error = createBundle(t, &zip, node, "/"))) {
-        //emit buildError(this, tr("Unable to write DRFX bundle: %1").arg(m_outputName));
+        QFile::remove(m_outputName);
         zip.close();
         return;
     }

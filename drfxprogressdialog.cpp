@@ -1,7 +1,9 @@
 #include "drfxprogressdialog.h"
 #include "ui_drfxprogressdialog.h"
 #include <QMessageBox>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 
 DRFXProgressDialog::DRFXProgressDialog(QWidget *parent)
     : QDialog(parent)
@@ -13,8 +15,18 @@ DRFXProgressDialog::DRFXProgressDialog(QWidget *parent)
     ui->progressBar->setMinimum(0);
     ui->progressBar->setMaximum(100);
     ui->progressBar->setValue(0);
+   
+    QScreen *screen = qApp->primaryScreen();
+    int width = geometry().width();
+    int hight = geometry().height();
+    if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
+        uint centerX = screen->size().width() / 2 - width / 2;
+        uint centerY = screen->size().height() / 2 - hight / 2;
+        setGeometry(centerX, centerY, width, hight);
+    }
 
     // call all events in main thread context!ss
+    connect(this, &DRFXProgressDialog::showComplete, this, &DRFXProgressDialog::onComplete, Qt::QueuedConnection);
     connect(this, &DRFXProgressDialog::progressReset, ui->progressBar, &QProgressBar::reset, Qt::QueuedConnection);
     connect(this, &DRFXProgressDialog::updateRange, ui->progressBar, &QProgressBar::setRange, Qt::QueuedConnection);
     connect(this, &DRFXProgressDialog::updateMinimum, ui->progressBar, &QProgressBar::setMinimum, Qt::QueuedConnection);
@@ -34,6 +46,10 @@ DRFXProgressDialog::DRFXProgressDialog(QWidget *parent)
 DRFXProgressDialog::~DRFXProgressDialog()
 {
     delete ui;
+}
+
+void DRFXProgressDialog::complete(const QString& message) {
+    emit showComplete(message);
 }
 
 void DRFXProgressDialog::run(const TWorkerCallback &worker, const TCompleteCallback &completion)
@@ -117,4 +133,9 @@ void DRFXProgressDialog::setError(const QString &message)
 {
     m_isError = true;
     emit showError(message);
+}
+
+void DRFXProgressDialog::onComplete(const QString &message)
+{
+    QMessageBox::information(this, qApp->applicationDisplayName(), message);
 }
