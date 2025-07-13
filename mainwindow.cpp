@@ -111,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowIcon(QIcon(":/assets/png/drfxbuilder.png"));
     setWindowTitle(qApp->applicationDisplayName());
+    setStyleSheet(qApp->styleSheet());
 
     ui->statusbar->setSizeGripEnabled(true);
     ui->statusbar->showMessage(tr("%1 %2 Copyright (c) 2025 by EoF Software Labs") //

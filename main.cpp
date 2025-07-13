@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <QApplication>
+#include <QFile>
 #include <QLocale>
 #include <QTranslator>
 
@@ -8,8 +9,14 @@ int main(int argc, char *argv[])
 {
     QApplication::setApplicationDisplayName("EoF DRFX Builder");
     QApplication::setApplicationName("EoF DRFX Builder");
-    QApplication::setApplicationVersion("0.2.1");
+    QApplication::setApplicationVersion("1.0.2");
     QApplication a(argc, argv);
+
+    QFile css(":/theme/appstyle.css");
+    if (css.open(QFile::ReadOnly)) {
+        a.setStyleSheet(css.readAll());
+        css.close();
+    }
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

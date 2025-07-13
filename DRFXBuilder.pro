@@ -172,6 +172,8 @@ RESOURCES += \
 DISTFILES += \
 	LICENSE \
 	README.md \
+	appstyle.css \
 	deploy.sh \
+	drfxbutton.lua \
 	make.sh \
 	qmake-options.txt

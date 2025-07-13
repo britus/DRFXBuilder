@@ -1,0 +1,49 @@
+* {
+	background-color: background-color: rgb(26 26 26);
+	color: white;
+}
+QMainWindow {
+	background-color: background-color: rgb(26 26 26);
+}
+QMainWindow#centralwidget {
+	background-color: rgba(26, 26, 26, 70%);
+}
+QDialog {
+	background-color: rgb(40 40 46);
+	border-color: rgb(253 90 68);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 5px;
+}
+QMessageBox {
+	background-color: rgb(40 40 46);
+	border-color: rgb(253 90 68);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 5px;
+	min-width: 590px;
+	min-height: 490px;
+}
+QMessageBox QLabel {
+	background-color: rgba(26, 26, 26, 70%);
+	color: #FFFFFF;
+}
+QWidget {
+	background-color: transparent;
+}
+QFrame {
+	background-color: transparent;
+}
+/*
+QGroupBox {
+	margin: 12px 12px 12px 12px;
+	padding: 24px 4px 4px 4px;
+	opacity: 0.5;
+}
+*/
+QPushButton {
+	border-color: rgb(253 90 68);
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 15px;
+}

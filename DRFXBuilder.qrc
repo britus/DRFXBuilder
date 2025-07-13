@@ -20,4 +20,7 @@
         <file>assets/icns/drfxbuilder_512x512.icns</file>
         <file>assets/icns/drfxbuilder_1024x1024.icns</file>
     </qresource>
+    <qresource prefix="/theme">
+        <file>appstyle.css</file>
+    </qresource>
 </RCC>
