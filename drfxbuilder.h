@@ -17,23 +17,24 @@ class DRFXBuilder : public QObject
 public:
     explicit DRFXBuilder(const QString &outputName, QObject *parent = nullptr);
     ~DRFXBuilder();
-    void build(QTreeWidgetItem *root);
+    void build(QThread *t, QTreeWidgetItem *root);
+    void complete();
     inline int errorCode() { return m_error; }
     inline bool isError() { return m_error != 0; }
     inline void setOutputName(const QString &name) { m_outputName = name; }
+    inline const QString &outputName() const { return m_outputName; }
 
 signals:
     void buildError(DRFXBuilder *builder, const QString &);
     void buildStarted(DRFXBuilder *builder);
     void buildComplete(DRFXBuilder *builder, const QString &);
+    void buildItemsDone(int count);
 
 private:
     int m_error;
-    QThread *m_thread;
     QString m_outputName;
+    int itemCount;
 
 private:
     inline int createBundle(QThread *t, QZipWriter *zip, QTreeWidgetItem *node, const QString &prefix);
-    inline void doStarted(QThread *t, QTreeWidgetItem *node);
-    inline void doComplete();
 };

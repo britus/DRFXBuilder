@@ -540,7 +540,7 @@
                 <string>Add your Fusion VFX to bundle structure</string>
                </property>
                <property name="text">
-                <string>A&amp;dd to Bundle</string>
+                <string>A&amp;dd</string>
                </property>
                <property name="autoDefault">
                 <bool>true</bool>
@@ -582,6 +582,32 @@
                </property>
                <property name="autoDefault">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pbLoadBundle">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Load from...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pbSaveBundle">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Save to...</string>
                </property>
               </widget>
              </item>
@@ -880,8 +906,52 @@
      <height>24</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuBundle">
+    <property name="title">
+     <string>Bundle</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionNewBundle"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadBundle"/>
+    <addaction name="actionSaveBundle"/>
+   </widget>
+   <addaction name="menuBundle"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoadBundle">
+   <property name="text">
+    <string>Load from...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load bundle from file.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSaveBundle">
+   <property name="text">
+    <string>Save to...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save to bundle to file.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionNewBundle">
+   <property name="text">
+    <string>New Bundle</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset the bundle structure</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>edFusionMacro</tabstop>
@@ -902,5 +972,54 @@
  <resources>
   <include location="DRFXBuilder.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionLoadBundle</sender>
+   <signal>triggered()</signal>
+   <receiver>pbLoadBundle</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>526</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveBundle</sender>
+   <signal>triggered()</signal>
+   <receiver>pbSaveBundle</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>638</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionNewBundle</sender>
+   <signal>triggered()</signal>
+   <receiver>pbNewBundle</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>414</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

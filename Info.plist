@@ -80,5 +80,16 @@
 	<string>drfxbuilder.png</string>
 	<key>UIPrerenderedIcon</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>DRFX Bundle Builder</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>vfxbb</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

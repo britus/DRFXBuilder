@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
-        saveBundleStructure();
+        saveBundleStructure(bundleStuctureFile());
         m_settings.setValue("window.width", geometry().width()); //
         m_settings.setValue("window.height", geometry().height());
         m_settings.sync();
@@ -122,6 +122,9 @@ void MainWindow::setOutputName(const QString &fileName)
 {
     m_outputName = fileName;
     m_settings.setValue("output.name", m_outputName);
+    ui->txBundleFile->setText(tr( //
+                                  "Bundle file: %1")
+                                  .arg(shortenText(m_outputName, 80)));
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
@@ -148,7 +151,6 @@ void MainWindow::on_edFusionMacro_textChanged(const QString &value)
     const QFileInfo fi(value);
     setMacroPath(fi.absolutePath(), value);
     checkInputFields();
-    updateTargetInfo();
 }
 
 void MainWindow::on_edFusionMacro_textEdited(const QString &value)
@@ -162,7 +164,6 @@ void MainWindow::on_edIconFile_textChanged(const QString &value)
     const QFileInfo fi(value);
     setIconPath(fi.absolutePath(), value);
     checkInputFields();
-    updateTargetInfo();
 }
 
 void MainWindow::on_edIconFile_textEdited(const QString &value)
@@ -174,7 +175,6 @@ void MainWindow::on_edCompany_textChanged(const QString &value)
 {
     m_settings.setValue("company", value);
     checkInputFields();
-    updateTargetInfo();
 }
 
 void MainWindow::on_edCompany_textEdited(const QString &value)
@@ -185,10 +185,11 @@ void MainWindow::on_edCompany_textEdited(const QString &value)
 void MainWindow::on_edProduct_textChanged(const QString &value)
 {
     m_settings.setValue("product", value);
-    setOutputName(QDir::toNativeSeparators( //
-        QStringLiteral("%1/%2.drfx").arg(templatePath(m_appType), value)));
+    if (m_outputName.contains(value)) {
+        setOutputName(QDir::toNativeSeparators( //
+            QStringLiteral("%1/%2.drfx").arg(templatePath(m_appType), value)));
+    }
     checkInputFields();
-    updateTargetInfo();
 }
 
 void MainWindow::on_edProduct_textEdited(const QString &value)
@@ -250,6 +251,7 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
 {
     // on delete rows from table view, parameter can be NULL
     if (!current) {
+        ui->pbDelete->setEnabled(false);
         return;
     }
 
@@ -283,6 +285,12 @@ void MainWindow::on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTa
 
 void MainWindow::on_twNodeList_itemClicked(QTableWidgetItem *item)
 {
+    /* QT bug in case of delete a row */
+    if (!item || ui->twNodeList->row(item) < 0) {
+        ui->pbDelete->setEnabled(false);
+        return;
+    }
+
     QTreeWidgetItem *twi;
     bool enabled = false;
 
@@ -307,6 +315,16 @@ void MainWindow::on_twNodeList_itemClicked(QTableWidgetItem *item)
     ui->pbDelete->setEnabled(enabled);
 }
 
+void MainWindow::on_twNodeList_itemChanged(QTableWidgetItem *)
+{
+    //on_twNodeList_itemClicked(item);
+}
+
+void MainWindow::on_twNodeList_itemSelectionChanged()
+{
+    on_twNodeList_itemClicked(ui->twNodeList->currentItem());
+}
+
 void MainWindow::on_pbNewBundle_clicked()
 {
     if (QMessageBox::question(this,
@@ -317,6 +335,61 @@ void MainWindow::on_pbNewBundle_clicked()
         ui->pbBuildDRFX->setDefault(false);
         ui->pbBuildDRFX->setEnabled(false);
     }
+}
+
+void MainWindow::on_pbLoadBundle_clicked()
+{
+    QFileDialog d(this);
+
+    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+        loadBundleStructure(file);
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
+        qDebug("Directory entered: %s", qPrintable(directory));
+    });
+
+    d.setWindowTitle(tr("Load bundle structue"));
+    d.setWindowFilePath(documentsPath());
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
+    d.setFileMode(QFileDialog::FileMode::ExistingFile);
+    d.setDirectory(documentsPath());
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle structure file"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.vfxbb):");
+    d.setOption(QFileDialog::Option::ReadOnly);
+    d.setNameFilters(QStringList() << "*.vfxbb");
+    d.setDefaultSuffix(".vfxbb");
+    if (d.exec() == QFileDialog::Accepted) {
+        const bool enable = hasUserContent();
+        ui->pbBuildDRFX->setEnabled(enable);
+        ui->pbBuildDRFX->setDefault(enable);
+        ui->pbImport->setDefault(!enable);
+    }
+}
+
+void MainWindow::on_pbSaveBundle_clicked()
+{
+    QFileDialog d(this);
+    connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
+        qDebug("File selected: %s", qPrintable(file));
+        saveBundleStructure(file);
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
+        qDebug("Directory entered: %s", qPrintable(directory));
+    });
+
+    d.setWindowTitle(tr("Save bundle structure"));
+    d.setWindowFilePath(documentsPath());
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
+    d.setFileMode(QFileDialog::FileMode::AnyFile);
+    d.setDirectory(documentsPath());
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle structure file:"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.vfxbb):");
+    d.setOption(QFileDialog::DontConfirmOverwrite, false);
+    d.setOption(QFileDialog::DontUseNativeDialog, false);
+    d.setNameFilters(QStringList() << "*.vfxbb" << "*.*");
+    d.setDefaultSuffix(".vfxbb");
+    d.exec();
 }
 
 void MainWindow::on_pbSelectMacro_clicked()
@@ -340,6 +413,7 @@ void MainWindow::on_pbSelectMacro_clicked()
     d.setFileMode(QFileDialog::FileMode::ExistingFile);
     d.setDirectory(m_macroPath);
     d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Fusion macro file"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.setting):");
     d.setOption(QFileDialog::Option::ReadOnly);
     d.setNameFilters(QStringList() << "*.setting");
     d.setDefaultSuffix(".setting");
@@ -393,9 +467,16 @@ void MainWindow::on_pbImport_clicked()
 // select node in tree view
 void MainWindow::on_pbDelete_clicked()
 {
+    QTableWidgetItem *item = ui->twNodeList->currentItem();
+
+    /* QT Bug?? */
+    int row;
+    if (!item || (row = ui->twNodeList->row(item)) < 0) {
+        return;
+    }
+
     QTreeWidgetItem *twi = nullptr;
     QTreeWidgetItem *parent = nullptr;
-    QTableWidgetItem *item = ui->twNodeList->currentItem();
     QVariant v = item->data(Qt::ItemDataRole::UserRole);
     if (!v.isNull() && v.isValid()) {
         switch (ui->twNodeList->column(item)) {
@@ -419,12 +500,16 @@ void MainWindow::on_pbDelete_clicked()
             parent = twi->parent();
             parent->removeChild(twi);
             delete twi;
-            int row = ui->twNodeList->row(item);
             ui->twNodeList->removeRow(row);
             // check BUG of QT: will not remove always. we call cleanup
             if (ui->twNodeList->rowCount() > parent->childCount()) {
                 cleanupTableView();
             }
+
+            bool enable = hasUserContent();
+            ui->pbBuildDRFX->setEnabled(enable);
+            ui->pbBuildDRFX->setDefault(enable);
+            ui->pbImport->setDefault(!enable);
         }
     }
 }
@@ -432,6 +517,7 @@ void MainWindow::on_pbDelete_clicked()
 void MainWindow::on_pbBuildDRFX_clicked()
 {
     const QFileInfo fi(m_outputName);
+
     // the builder job
     DRFXBuilder *builder = new DRFXBuilder(m_outputName, this);
     connect(builder, &DRFXBuilder::buildStarted, this, &MainWindow::onBuildStarted, Qt::QueuedConnection);
@@ -439,9 +525,8 @@ void MainWindow::on_pbBuildDRFX_clicked()
     connect(builder, &DRFXBuilder::buildError, this, &MainWindow::onBuildError, Qt::QueuedConnection);
 
     QFileDialog d(this);
-    connect(&d, &QFileDialog::fileSelected, this, [this, builder](const QString &file) {
+    connect(&d, &QFileDialog::fileSelected, this, [builder](const QString &file) {
         qDebug("Directory selected: %s", qPrintable(file));
-        setOutputName(file);
         builder->setOutputName(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -454,14 +539,25 @@ void MainWindow::on_pbBuildDRFX_clicked()
     d.setFileMode(QFileDialog::FileMode::AnyFile);
     d.setDirectory(fi.absolutePath());
     d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Bundle file:"));
-    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension (.drfx):");
+    d.setLabelText(QFileDialog::DialogLabel::FileType, "Extension: (.drfx):");
     d.setOption(QFileDialog::DontConfirmOverwrite, true);
     d.setOption(QFileDialog::DontUseNativeDialog, false);
     d.setNameFilters(QStringList() << "*.drfx" << "*.*");
     d.setHistory(QStringList() << fi.fileName());
     d.setDefaultSuffix(".drfx");
     if (d.exec() == QFileDialog::Accepted) {
-        builder->build(ui->tvBundleStruct->topLevelItem(0));
+        // run async in with progress dialog UI
+        DRFXProgressDialog *pd = new DRFXProgressDialog(this);
+        connect(builder, &DRFXBuilder::buildItemsDone, pd, &DRFXProgressDialog::setValue);
+        pd->setMessage(tr("Please wait, create bundle: %1").arg(builder->outputName()));
+        pd->setRange(0, ui->tvBundleStruct->children().count());
+        pd->run(                                                //
+            [this, builder](DRFXProgressDialog *, QThread *t) { //
+                builder->build(t, ui->tvBundleStruct->topLevelItem(0));
+            },
+            [](DRFXProgressDialog *d) { //
+                d->deleteLater();
+            });
     }
 }
 
@@ -575,14 +671,15 @@ inline void MainWindow::postInitUi()
     }
 
     // restore bundle */
-    loadBundleStructure();
+    loadBundleStructure(bundleStuctureFile());
 
     // any content exist?
-    if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
-        ui->pbImport->setDefault(false);
-        ui->pbBuildDRFX->setEnabled(true);
-        ui->pbBuildDRFX->setDefault(true);
-    }
+    const bool enable = hasUserContent();
+    ui->pbBuildDRFX->setEnabled(enable);
+    ui->pbBuildDRFX->setDefault(enable);
+    ui->pbImport->setDefault(!enable);
+
+    ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
 
     // input field restored?
     checkInputFields();
@@ -610,7 +707,6 @@ inline void MainWindow::checkOutputExist()
         ui->pbBuildDRFX->setDefault(false);
         ui->pbInstall->setEnabled(true);
         ui->pbInstall->setDefault(true);
-        ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
     }
 }
 
@@ -734,7 +830,12 @@ inline void MainWindow::cbxAddBundleItems(QTreeWidgetItem *node, const QString &
     }
 }
 
-inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
+inline bool MainWindow::hasUserContent() const
+{
+    return checkBundleContent(ui->tvBundleStruct->topLevelItem(0));
+}
+
+inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node) const
 {
     bool result = false;
     for (int i = 0; i < node->childCount(); i++) {
@@ -746,7 +847,7 @@ inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node)
             }
             const TNodeData nd = data.value<TNodeData>();
             if (nd.type == TNodeType::NTProduct) {
-                result = true;
+                result = child->childCount() > 0;
                 break;
             }
             if (checkBundleContent(child)) {
@@ -782,13 +883,13 @@ inline QTreeWidgetItem *MainWindow::findNodeByHash(QTreeWidgetItem *item, const 
     return result;
 }
 
-inline void MainWindow::saveBundleStructure()
+inline void MainWindow::saveBundleStructure(const QString &fileName)
 {
     if (ui->tvBundleStruct->topLevelItemCount() == 0) {
         return;
     }
 
-    QFileInfo fi(bundleStuctureFile());
+    QFileInfo fi(fileName);
     QDir dir(fi.absolutePath());
     if (!dir.exists()) {
         if (!dir.mkpath(fi.absolutePath())) {
@@ -898,11 +999,10 @@ inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
         ui->statusbar->showMessage(tr("Fusion added to bundle."), 5000);
     }
 
-    if (checkBundleContent(ui->tvBundleStruct->topLevelItem(0))) {
-        ui->pbBuildDRFX->setEnabled(true);
-        ui->pbBuildDRFX->setDefault(true);
-        ui->pbImport->setDefault(false);
-    }
+    const bool enable = hasUserContent();
+    ui->pbBuildDRFX->setEnabled(enable);
+    ui->pbBuildDRFX->setDefault(enable);
+    ui->pbImport->setDefault(!enable);
 }
 
 inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
@@ -950,9 +1050,9 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
     }
 }
 
-inline bool MainWindow::loadBundleStructure()
+inline bool MainWindow::loadBundleStructure(const QString &fileName)
 {
-    QFile f(bundleStuctureFile());
+    QFile f(fileName);
     if (!f.open(QFile::ReadOnly) || f.size() == 0) {
         return false; // may not exist (first run)
     }
@@ -967,6 +1067,9 @@ inline bool MainWindow::loadBundleStructure()
                               error.errorString());
         return false;
     }
+
+    // reset treeview
+    resetBundleStructure(ui->tvBundleStruct->topLevelItem(0));
 
     const QJsonObject jroot = jdoc.object();
     if (jroot.isEmpty()) {
@@ -1050,6 +1153,11 @@ inline bool MainWindow::loadBundleStructure()
             }
         }
     }
+
+    const bool enable = hasUserContent();
+    ui->pbBuildDRFX->setEnabled(enable);
+    ui->pbBuildDRFX->setDefault(enable);
+    ui->pbImport->setDefault(!enable);
     return true;
 }
 
@@ -1158,6 +1266,11 @@ inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
         node->removeChild(item);
         delete item;
     }
+
+    const bool enable = hasUserContent();
+    ui->pbBuildDRFX->setEnabled(enable);
+    ui->pbBuildDRFX->setDefault(enable);
+    ui->pbImport->setDefault(!enable);
 }
 
 inline QString MainWindow::configPath() const
@@ -1190,7 +1303,7 @@ inline QString MainWindow::configFile() const
 inline QString MainWindow::bundleStuctureFile() const
 {
     return QDir::toNativeSeparators( //
-        appLocalDataPath().append(QDir::separator()).append("structure.conf"));
+        appLocalDataPath().append(QDir::separator()).append("structure.vfxbb"));
 }
 
 inline QString MainWindow::picturePath() const

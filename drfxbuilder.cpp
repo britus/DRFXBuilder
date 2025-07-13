@@ -21,31 +21,19 @@ inline static QString tempPath()
 
 DRFXBuilder::DRFXBuilder(const QString &ouputDir, QObject *parent)
     : QObject(parent)
-    , m_thread(nullptr)
     , m_outputName(ouputDir)
-{}
+    , itemCount(0)
+{
+    //
+}
 
 DRFXBuilder::~DRFXBuilder()
 {
-    if (m_thread) {
-        m_thread->requestInterruption();
-        m_thread->wait();
-    }
+    //
 }
 
-void DRFXBuilder::build(QTreeWidgetItem *root)
+void DRFXBuilder::build(QThread *t, QTreeWidgetItem *node)
 {
-    QThread *t = new QThread(this);
-    connect(t, &QThread::destroyed, this, [this](QObject *) { doComplete(); }, Qt::QueuedConnection);
-    connect(t, &QThread::started, this, [this, t, root]() { doStarted(t, root); }, Qt::DirectConnection);
-    connect(t, &QThread::finished, this, [t]() { t->deleteLater(); }, Qt::DirectConnection);
-    t->start(QThread::HighPriority);
-}
-
-inline void DRFXBuilder::doStarted(QThread *t, QTreeWidgetItem *node)
-{
-    m_thread = t;
-
     emit buildStarted(this);
 
     QZipWriter zip(QDir::toNativeSeparators(m_outputName));
@@ -54,19 +42,20 @@ inline void DRFXBuilder::doStarted(QThread *t, QTreeWidgetItem *node)
         m_error = -EIO;
         return;
     }
-
     if ((m_error = createBundle(t, &zip, node, "/"))) {
         emit buildError(this, tr("Unable to create DRFX bundle directory."));
     }
-
     zip.close();
+
+    // notify completion
+    complete();
+
     t->exit(m_error);
 }
 
-inline void DRFXBuilder::doComplete()
+inline void DRFXBuilder::complete()
 {
     emit buildComplete(this, m_outputName);
-    m_thread = nullptr;
 }
 
 inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetItem *node, const QString &prefix)
@@ -77,6 +66,8 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
     if (t->isInterruptionRequested()) {
         return -ELOOP;
     }
+
+    t->yieldCurrentThread();
 
     // node entry name
     v = node->data(0, Qt::DisplayRole);
@@ -110,6 +101,8 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
                 emit buildError(this, tr("Unable to add zip-directory entry: %1").arg(nd.path));
                 return -EIO;
             }
+            itemCount++;
+            emit buildItemsDone(itemCount);
             break;
         }
         case TNodeType::NTFileItem: {
@@ -132,6 +125,8 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
                 emit buildError(this, tr("Unable to add file entry: %1").arg(zipName));
                 return -EIO;
             }
+            itemCount++;
+            emit buildItemsDone(itemCount);
             break;
         }
         default: {

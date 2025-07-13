@@ -8,6 +8,7 @@ DRFXProgressDialog::DRFXProgressDialog(QWidget *parent)
     , ui(new Ui::DRFXProgressDialog)
 {
     ui->setupUi(this);
+    ui->progressBar->reset();
     ui->progressBar->setMinimum(0);
     ui->progressBar->setMaximum(100);
     ui->progressBar->setValue(0);

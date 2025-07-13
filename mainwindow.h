@@ -36,25 +36,28 @@ private slots:
     void onBuildComplete(DRFXBuilder *builder, const QString &);
     void on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
     void on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
+    void on_twNodeList_itemChanged(QTableWidgetItem *item);
+    void on_twNodeList_itemClicked(QTableWidgetItem *item);
+    void on_twNodeList_itemSelectionChanged();
     void on_edFusionMacro_textEdited(const QString &arg1);
+    void on_edFusionMacro_textChanged(const QString &arg1);
     void on_edIconFile_textEdited(const QString &arg1);
+    void on_edIconFile_textChanged(const QString &arg1);
     void on_edCompany_textEdited(const QString &arg1);
+    void on_edCompany_textChanged(const QString &arg1);
     void on_edProduct_textEdited(const QString &arg1);
+    void on_edProduct_textChanged(const QString &arg1);
+    void on_cbBundleNode_activated(int index);
+    void on_cbBundleNode_currentIndexChanged(int index);
     void on_pbSelectMacro_clicked();
     void on_pbSelectIcon_clicked();
-    void on_cbBundleNode_activated(int index);
     void on_pbImport_clicked();
+    void on_pbNewBundle_clicked();
+    void on_pbLoadBundle_clicked();
+    void on_pbSaveBundle_clicked();
     void on_pbDelete_clicked();
     void on_pbBuildDRFX_clicked();
     void on_pbInstall_clicked();
-    void on_pbNewBundle_clicked();
-    void on_edFusionMacro_textChanged(const QString &arg1);
-    void on_edIconFile_textChanged(const QString &arg1);
-    void on_edCompany_textChanged(const QString &arg1);
-    void on_edProduct_textChanged(const QString &arg1);
-    void on_twNodeList_itemClicked(QTableWidgetItem *item);
-
-    void on_cbBundleNode_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;
@@ -76,18 +79,18 @@ private:
     inline QTreeWidgetItem *addCompanyNode(QTreeWidgetItem *node, const QString &name, const QString &path);
     inline QTreeWidgetItem *addProductNode(QTreeWidgetItem *node, const QString &name, const QString &path);
     inline int addFileNode(QTreeWidgetItem *node, int errorBits, const QString &fileName);
-    inline bool checkBundleContent(QTreeWidgetItem *node);
+    inline bool hasUserContent() const;
+    inline bool checkBundleContent(QTreeWidgetItem *node) const;
     inline void cbxAddBundleItems(QTreeWidgetItem *node, const QString &prefix = "");
     inline QTreeWidgetItem *findNodeByHash(QTreeWidgetItem *node, const QString &hash);
     inline void bundleToJson(QJsonObject &node, QTreeWidgetItem *item);
-    inline void saveBundleStructure();
-    inline bool loadBundleStructure();
+    inline void saveBundleStructure(const QString &fileName);
+    inline bool loadBundleStructure(const QString &fileName);
     inline void selectComboBoxItem(QTreeWidgetItem *node);
     inline void resetBundleStructure(QTreeWidgetItem *node);
     inline void selectTableRow(QTreeWidgetItem *node);
     inline void fillTableView(QTreeWidgetItem *node);
     inline void cleanupTableView();
-
     inline QString configPath() const;
     inline QString appDataPath() const;
     inline QString appLocalDataPath() const;
