@@ -1,13 +1,13 @@
 # Type a script or drag a script file from your workspace to insert its path.
 # This scriptlet is only for Xcode custom build script in Build Phase
 if [ "x${BUILT_PRODUCTS_DIR}" == "x" ] ; then
-	echo "Paste the script into Xcode Build Phase - custom build script, or"
-	echo "set QTDIR=<where your QT arch root>"
-	echo "set PROJECT_ROOT=`pwd`"
-	echo 'set BUILT_PRODUCTS_DIR=${PROJECT_ROOT}/build/xcode/<Debug|Release>'
-	echo 'set PLUGINS_FOLDER_PATH=DRFXBuilder.app/Contents/PlugIns'
-	exit 1
-	exit 1
+    echo "Paste the script into Xcode Build Phase - custom build script, or"
+    echo "set QTDIR=<where your QT arch root>"
+    echo "set PROJECT_ROOT=`pwd`"
+    echo 'set BUILT_PRODUCTS_DIR=${PROJECT_ROOT}/build/xcode/<Debug|Release>'
+    echo 'set PLUGINS_FOLDER_PATH=DRFXBuilder.app/Contents/PlugIns'
+    exit 1
+    exit 1
 fi
 echo "--- INSTALL QT-PLUGINS ---"
 mkdir -p ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/platforms && \
@@ -44,4 +44,39 @@ mkdir -p ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/texttospeech && \
    cp -v ${QTDIR}/PlugIns/texttospeech/*.dylib ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/texttospeech
 mkdir -p ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/virtualkeyboard && \
    cp -v ${QTDIR}/PlugIns/virtualkeyboard/*.dylib ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/virtualkeyboard
+
+echo "--- INSTALL QT-FRAMEWORKS ---"
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtCore.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtDBus.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtGui.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtNetwork.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtOpenGL.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtPdf.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQml.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQmlMeta.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQmlModels.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQmlWorkerScript.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQuick.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtSvg.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtVirtualKeyboard.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtQmlMeta.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtVirtualKeyboardQml.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+mkdir -p ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH} && \
+   cp -Rv ${QTDIR}/lib/QtWidgets.framework ${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/
+
 echo "--- Done ----"
