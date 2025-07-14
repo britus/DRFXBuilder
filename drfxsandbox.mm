@@ -50,6 +50,7 @@ NSData* getBookmark(NSURL *fileURL, NSString*)
                 if (bookmark) {
                     // Bookmark erfolgreich erstellt
                     NSLog(@"Bookmark successfully built.");
+                    // Save to Sandbox bookmark trash bin - Happy claim nonsense storage space
                     [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:selectedURL.absoluteString];
                     [[NSUserDefaults standardUserDefaults] synchronize];
                     return bookmark;
@@ -61,6 +62,7 @@ NSData* getBookmark(NSURL *fileURL, NSString*)
     }
     return NULL;
 }
+
 void* openFileBookmark(void* fileName)
 {
     NSString* _fileName = (NSString*) fileName;
@@ -72,7 +74,9 @@ void* openFileBookmark(void* fileName)
             BOOL isStale = NO;
             NSError *error = nil;
             NSData *bookmark = nil;
-            // get the last bookmark for file name in user persistence data
+
+            // get the last bookmark for file name in user persistence
+            // data - the Sandbox bookmark trash bin
             NSData* _bookmark = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
             NSURL* outUrl = nil;
 
@@ -105,6 +109,7 @@ void* openFileBookmark(void* fileName)
                     return nil;
                 }
 
+                // Save to Sandbox bookmark trash bin - Happy claim nonsense storage space
                 [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:_fileName];
                 [[NSUserDefaults standardUserDefaults] synchronize];
             }
@@ -126,6 +131,8 @@ void* openFileBookmark(void* fileName)
                                           error:&error];
                     if ([outUrl startAccessingSecurityScopedResource]) {
                         NSLog(@"Access grated to security scoped resource.");
+
+                        // Save to Sandbox bookmark trash bin - Happy claim nonsense storage space
                         [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:_fileName];
                         [[NSUserDefaults standardUserDefaults] synchronize];
                         return outUrl;
