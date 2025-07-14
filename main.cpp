@@ -43,10 +43,7 @@ public:
             setStyle(myStyle);
         }
 
-        MainWindow w;
-        if (!m_projectFile.isEmpty()) {
-            w.setProjectFileName(m_projectFile);
-        }
+        MainWindow w(m_projectFile);
         w.show();
 
         return QApplication::exec();

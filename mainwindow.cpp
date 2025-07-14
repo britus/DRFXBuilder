@@ -37,7 +37,7 @@ inline static NSString *toFileUrl(const QString &path)
 }
 #endif
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_settings(configFile(), QSettings::Format::NativeFormat)
@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 #ifdef Q_OS_MACOS
     , m_secScopes()
 #endif
-    , m_projectFile()
+    , m_projectFile(projectFile)
 {
     ui->setupUi(this);
 
@@ -87,7 +87,14 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
+        // auto load slast user edit
         saveBundleStructure(bundleStuctureFile());
+
+        // save external project file if set
+        if (!m_projectFile.isEmpty()) {
+            saveBundleStructure(m_projectFile);
+        }
+
         m_settings.setValue("window.width", geometry().width()); //
         m_settings.setValue("window.height", geometry().height());
         m_settings.sync();
@@ -146,10 +153,8 @@ void MainWindow::setOutputName(const QString &fileName)
 
 void MainWindow::setProjectFileName(const QString &fileName)
 {
-#ifdef Q_OS_MACOS
-    openFileBookmark(toFileUrl(fileName));
-#endif
     m_projectFile = fileName;
+    loadBundleStructure(fileName);
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
@@ -353,7 +358,12 @@ void MainWindow::on_twNodeList_itemChanged(QTableWidgetItem *)
 
 void MainWindow::on_twNodeList_itemSelectionChanged()
 {
-    on_twNodeList_itemClicked(ui->twNodeList->currentItem());
+#if 0
+    QTableWidgetItem *item;
+    if ((item = ui->twNodeList->currentItem())) {
+        on_twNodeList_itemClicked(item);
+    }
+#endif
 }
 
 void MainWindow::on_pbNewBundle_clicked()
@@ -1193,6 +1203,10 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
 
 inline bool MainWindow::loadBundleStructure(const QString &fileName)
 {
+#ifdef Q_OS_MACOS
+    openFileBookmark(toFileUrl(fileName));
+#endif
+
     QFile f(fileName);
     if (!f.open(QFile::ReadOnly) || f.size() == 0) {
         return false; // may not exist (first run)
