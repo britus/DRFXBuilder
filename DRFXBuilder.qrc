@@ -22,5 +22,6 @@
     </qresource>
     <qresource prefix="/theme">
         <file>appstyle.css</file>
+        <file>appstyleqt5.css</file>
     </qresource>
 </RCC>

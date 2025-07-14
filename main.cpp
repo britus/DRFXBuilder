@@ -122,13 +122,16 @@ int main(int argc, char *argv[])
     DRFXApplication::setApplicationVersion("1.0.2");
     DRFXApplication a(argc, argv);
 
-#if 1 /*WIP*/
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QFile css(":/theme/appstyleqt5.css");
+#else
     QFile css(":/theme/appstyle.css");
+#endif
+
     if (css.open(QFile::ReadOnly)) {
         a.setStyleSheet(css.readAll());
         css.close();
     }
-#endif
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

@@ -173,6 +173,7 @@ DISTFILES += \
 	LICENSE \
 	README.md \
 	appstyle.css \
+	appstyleqt5.css \
 	deploy.sh \
 	DRFXBuilder.lua \
 	make.sh \
