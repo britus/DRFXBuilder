@@ -9,6 +9,7 @@
 #include <QProxyStyle>
 #include <QStyleFactory>
 #include <QTranslator>
+#include <QMessageBox>
 
 class DRFXApplication : public QApplication
 {

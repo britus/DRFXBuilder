@@ -87,14 +87,7 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
     });
 
     connect(qApp, &QApplication::aboutToQuit, this, [this] {
-        // auto load slast user edit
         saveBundleStructure(bundleStuctureFile());
-
-        // save external project file if set
-        if (!m_projectFile.isEmpty()) {
-            saveBundleStructure(m_projectFile);
-        }
-
         m_settings.setValue("window.width", geometry().width()); //
         m_settings.setValue("window.height", geometry().height());
         m_settings.sync();
@@ -102,6 +95,13 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
             qCritical("Unable to write settings file.");
         }
     });
+
+    connect(this, &MainWindow::loadProject, this, [this](const QString& fileName) { //
+        m_projectFile = fileName;
+        QTimer::singleShot(500, this, [this](){
+            loadBundleStructure(m_projectFile);
+        });
+    }, Qt::QueuedConnection);
 
     /* load settings / defaults */
     m_appType = m_settings.value("app.type", TAppType::ATNone).toUInt();
@@ -154,10 +154,6 @@ void MainWindow::setOutputName(const QString &fileName)
 void MainWindow::setProjectFileName(const QString &fileName)
 {
     m_projectFile = fileName;
-
-    QTimer::singleShot(500, this, [this, fileName](){
-        loadBundleStructure(fileName);
-    });
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
@@ -802,11 +798,9 @@ inline void MainWindow::postInitUi()
 #endif
 
     // restore bundle */
-    if (m_projectFile.isEmpty()) {
-        loadBundleStructure(bundleStuctureFile());
-    } else {
-        loadBundleStructure(m_projectFile);
-    }
+    loadBundleStructure(m_projectFile.isEmpty() //
+                            ? bundleStuctureFile() //
+                            : m_projectFile);
 
     // input field restored?
     checkInputFields();

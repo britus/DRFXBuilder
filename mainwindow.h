@@ -31,6 +31,9 @@ public slots:
     void setScriptPath(const QString &path);
     void setAppType(quint8 type);
 
+signals:
+    void loadProject(const QString &fileName);
+
 private slots:
     void onBuildError(DRFXBuilder *builder, const QString &);
     void onBuildStarted(DRFXBuilder *builder);
