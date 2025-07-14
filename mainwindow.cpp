@@ -146,6 +146,9 @@ void MainWindow::setOutputName(const QString &fileName)
 
 void MainWindow::setProjectFileName(const QString &fileName)
 {
+#ifdef Q_OS_MACOS
+    openFileBookmark(toFileUrl(fileName));
+#endif
     m_projectFile = fileName;
 }
 
