@@ -1,8 +1,5 @@
 QT += core gui widgets
 
-# Quazip 3rd party
-#QT += compress
-
 win32:TEMPLATE = vcapp
 else:TEMPLATE = app
 
@@ -47,6 +44,12 @@ unix:debug {
 	QMAKE_CXXFLAGS += -ggdb3
 }
 
+# QZip support
+INCLUDEPATH += $$PWD/qzip/src/compress
+
+QMAKE_INCDIR += /usr/local/include
+QMAKE_LIBDIR += /usr/local/lib
+QMAKE_LIBS += -lz
 
 #otool -L
 LIBS += -dead_strip
@@ -113,10 +116,10 @@ mac {
 	QMAKE_INFO_PLIST += \
 		$$PWD/Info.plist
 
-	#info_plist.files = \
-	#	$$PWD/Info.plist
-	#info_plist.path = Contents/
-	#QMAKE_BUNDLE_DATA += info_plist
+	info_plist.files = \
+		$$PWD/Info.plist
+	info_plist.path = Contents/
+	QMAKE_BUNDLE_DATA += info_plist
 
 	QMAKE_CODE_SIGN_ENTITLEMENTS=$$PWD/app.entitlements
 	QMAKE_CODE_SIGN_IDENTITY='Mac Developer'
@@ -138,17 +141,12 @@ windows {
 	INSTALLS += target
 }
 
-INCLUDEPATH += $$PWD/qzip/src/compress/
-QMAKE_INCDIR += /usr/local/include
-QMAKE_LIBDIR += /usr/local/lib
-QMAKE_LIBS += -lz
-
 SOURCES += \
 	$$PWD/drfxbuilder.cpp \
 	$$PWD/main.cpp \
 	$$PWD/mainwindow.cpp \
 	$$PWD/qzip/src/compress/qzip.cpp \
-	drfxprogressdialog.cpp
+	$$PWD/drfxprogressdialog.cpp
 
 HEADERS += \
 	$$PWD/drfxbuilder.h \
@@ -157,11 +155,11 @@ HEADERS += \
 	$$PWD/qzip/src/compress/qtcompressglobal.h \
 	$$PWD/qzip/src/compress/qzipreader.h \
 	$$PWD/qzip/src/compress/qzipwriter.h \
-	drfxprogressdialog.h
+	$$PWD/drfxprogressdialog.h
 
 FORMS += \
 	$$PWD/mainwindow.ui \
-	drfxprogressdialog.ui
+	$$PWD/drfxprogressdialog.ui
 
 TRANSLATIONS += \
 	$$PWD/DRFXBuilder_en_US.ts

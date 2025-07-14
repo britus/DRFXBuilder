@@ -225,6 +225,12 @@
          <property name="title">
           <string>Add to bundle</string>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <property name="spacing">
            <number>12</number>
@@ -259,30 +265,8 @@
              <property name="spacing">
               <number>12</number>
              </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>&amp;Fusion macro:</string>
-               </property>
-               <property name="buddy">
-                <cstring>edFusionMacro</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="edFusionMacro">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="edProduct">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -290,42 +274,10 @@
                 </size>
                </property>
                <property name="statusTip">
-                <string>Name of the Fusion macro file to add to the package.</string>
+                <string>Your product name will be displayed in the Fusion Tools tree</string>
                </property>
                <property name="whatsThis">
-                <string>Name of the Fusion macro file to add to the package.</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QToolButton" name="pbSelectMacro">
-               <property name="toolTip">
-                <string>Select Fusion macro file name.</string>
-               </property>
-               <property name="statusTip">
-                <string>Select Fusion macro file name.</string>
-               </property>
-               <property name="whatsThis">
-                <string>Select Fusion macro file name.</string>
-               </property>
-               <property name="text">
-                <string>...</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>&amp;Icon file name:</string>
-               </property>
-               <property name="buddy">
-                <cstring>edIconFile</cstring>
+                <string>Your product name will be displayed in the Fusion Tools tree</string>
                </property>
               </widget>
              </item>
@@ -348,22 +300,6 @@
                </property>
                <property name="whatsThis">
                 <string>Name of the icon file to add to the package.</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QToolButton" name="pbSelectIcon">
-               <property name="toolTip">
-                <string>Select icon file name.</string>
-               </property>
-               <property name="statusTip">
-                <string>Select icon file name.</string>
-               </property>
-               <property name="whatsThis">
-                <string>Select icon file name.</string>
-               </property>
-               <property name="text">
-                <string>...</string>
                </property>
               </widget>
              </item>
@@ -399,6 +335,76 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&amp;Icon file name:</string>
+               </property>
+               <property name="buddy">
+                <cstring>edIconFile</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QToolButton" name="pbSelectIcon">
+               <property name="toolTip">
+                <string>Select icon file name.</string>
+               </property>
+               <property name="statusTip">
+                <string>Select icon file name.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Select icon file name.</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="edFusionMacro">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="statusTip">
+                <string>Name of the Fusion macro file to add to the package.</string>
+               </property>
+               <property name="whatsThis">
+                <string>Name of the Fusion macro file to add to the package.</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>&amp;Fusion macro:</string>
+               </property>
+               <property name="buddy">
+                <cstring>edFusionMacro</cstring>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="1">
               <widget class="QLineEdit" name="edCompany">
                <property name="minimumSize">
@@ -415,19 +421,54 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="edProduct">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>24</height>
-                </size>
+             <item row="0" column="2">
+              <widget class="QToolButton" name="pbSelectMacro">
+               <property name="toolTip">
+                <string>Select Fusion macro file name.</string>
                </property>
                <property name="statusTip">
-                <string>Your product name will be displayed in the Fusion Tools tree</string>
+                <string>Select Fusion macro file name.</string>
                </property>
                <property name="whatsThis">
-                <string>Your product name will be displayed in the Fusion Tools tree</string>
+                <string>Select Fusion macro file name.</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QComboBox" name="cbBundleNode">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
+               <property name="statusTip">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
+               <property name="whatsThis">
+                <string>Choose where to place your Fusion VFX</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Bundle node:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cbBundleNode</cstring>
                </property>
               </widget>
              </item>
@@ -452,8 +493,21 @@
              <property name="spacing">
               <number>12</number>
              </property>
+             <item row="0" column="1">
+              <widget class="QLabel" name="txTargetPath">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>/</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="label_3">
+              <widget class="QLabel" name="label_6">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -461,43 +515,7 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>Bundle node</string>
-               </property>
-               <property name="buddy">
-                <cstring>cbBundleNode</cstring>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QComboBox" name="cbBundleNode">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Choose where to place your Fusion VFX</string>
-               </property>
-               <property name="statusTip">
-                <string>Choose where to place your Fusion VFX</string>
-               </property>
-               <property name="whatsThis">
-                <string>Choose where to place your Fusion VFX</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
                 <string>Bundle path:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="txTargetPath">
-               <property name="text">
-                <string>/</string>
                </property>
               </widget>
              </item>
@@ -627,6 +645,12 @@
          </property>
          <property name="title">
           <string>Product content</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
@@ -918,7 +942,11 @@
    </widget>
    <addaction name="menuBundle"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="sizeGripEnabled">
+    <bool>false</bool>
+   </property>
+  </widget>
   <action name="actionLoadBundle">
    <property name="text">
     <string>Load from...</string>
@@ -963,6 +991,8 @@
   <tabstop>cbBundleNode</tabstop>
   <tabstop>pbImport</tabstop>
   <tabstop>pbNewBundle</tabstop>
+  <tabstop>pbLoadBundle</tabstop>
+  <tabstop>pbSaveBundle</tabstop>
   <tabstop>tvBundleStruct</tabstop>
   <tabstop>twNodeList</tabstop>
   <tabstop>pbDelete</tabstop>

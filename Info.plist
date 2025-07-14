@@ -38,11 +38,11 @@
 	<key>CFBundleIconFile</key>
 	<string>drfxbuilder.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>org.eof.tools.DRFXBuilder</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>EoF DRFX Bundle Builder</string>
+	<string>DRFX Bundle Builder</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
