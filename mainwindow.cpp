@@ -63,8 +63,8 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
 
     // center window on primary screen
     QScreen *screen = qApp->primaryScreen();
-    int width = m_settings.value("window.width", 1024).toUInt();
-    int hight = m_settings.value("window.height", 640).toUInt();
+    int width = m_settings.value("window.width", 1024).toInt();
+    int hight = m_settings.value("window.height", 640).toInt();
     if (width > 0 && width < screen->size().width() && hight > 0 && hight < screen->size().height()) {
         uint centerX = screen->size().width() / 2 - width / 2;
         uint centerY = screen->size().height() / 2 - hight / 2;
@@ -154,7 +154,8 @@ void MainWindow::setOutputName(const QString &fileName)
 void MainWindow::setProjectFileName(const QString &fileName)
 {
     m_projectFile = fileName;
-    QTimer::singleShot(2000, this, [this, fileName](){
+
+    QTimer::singleShot(500, this, [this, fileName](){
         loadBundleStructure(fileName);
     });
 }
@@ -786,27 +787,6 @@ inline void MainWindow::postInitUi()
         }
     }
 
-    // restore bundle */
-    if (m_projectFile.isEmpty()) {
-        loadBundleStructure(bundleStuctureFile());
-    } else {
-        loadBundleStructure(m_projectFile);
-    }
-
-    // any content exist?
-    const bool enable = hasUserContent();
-    ui->pbBuildDRFX->setEnabled(enable);
-    ui->pbBuildDRFX->setDefault(enable);
-    ui->pbImport->setDefault(!enable);
-
-    ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
-
-    // input field restored?
-    checkInputFields();
-
-    // already generated ?
-    checkOutputExist();
-
 #ifdef Q_OS_MACOS
     // sandbox bookmars
     if (!initSecurityScopes()) {
@@ -820,6 +800,26 @@ inline void MainWindow::postInitUi()
 #endif
     }
 #endif
+
+    // restore bundle */
+    if (m_projectFile.isEmpty()) {
+        loadBundleStructure(bundleStuctureFile());
+    } else {
+        loadBundleStructure(m_projectFile);
+    }
+
+    // input field restored?
+    checkInputFields();
+
+    // already generated ?
+    checkOutputExist();
+
+    // any content exist?
+    const bool enable = hasUserContent();
+    ui->pbBuildDRFX->setEnabled(enable);
+    ui->pbBuildDRFX->setDefault(enable);
+    ui->pbImport->setDefault(!enable);
+    ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
 }
 
 inline void MainWindow::updateTargetInfo()

@@ -20,8 +20,8 @@ public:
     int exec()
     {
         const QStringList args = arguments();
-        if (!args.isEmpty()) {
-            m_projectFile = args.at(0);
+        if (args.size() > 1) {
+            m_projectFile = args.at(1);
         }
 
         /* Override commandline style with our fixed GUI style type */
