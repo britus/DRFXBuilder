@@ -1,6 +1,8 @@
 * {
 	background-color: rgb(26, 26, 26);
 	color: rgb(166, 166, 166);
+	font-size: 14pt;
+	font-family: "System";
 }
 
 /* -----------------------------
@@ -391,6 +393,14 @@ QTabBar::tab:!selected {
 /* -----------------------------
  *
  */
+QHeaderView {
+	background-color: rgb(40, 40, 40);
+	color: rgb(255, 255, 255);
+}
+
+/* -----------------------------
+ *
+ */
 QListWidget {
 	background-color: rgb(40, 40, 40);
 	border-color: rgb(0, 0, 0);
@@ -420,6 +430,8 @@ QTreeWidget {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 5px;
+	selection-background-color: rgb(0, 0, 0);
+	selection-color: rgb(255, 255, 255);
 }
 QTreeWidget::disabled {
 	background-color: rgb(31, 31, 31);
@@ -429,17 +441,20 @@ QTreeWidget::item {
 	padding: 2px 2px 2px 2px;
 	min-height: 16px;
 }
+/*
+QTreeWidget::item::indicators {
+	background-color: rgb(40, 40, 40);
+	color: rgb(255, 255, 255);
+}
 QTreeWidget::item::selected {
 	background-color: rgb(0, 0, 0);
 	color: rgb(255, 255, 255);
 }
-
-/* -----------------------------
- *
- */
-QHeaderView {
-	background-color: rgb(40, 40, 40);
+QTreeWidget::item::selected::indicators {
+	background-color: rgb(9, 9, 9);
+	color: rgb(255, 255, 255);
 }
+*/
 
 /* -----------------------------
  *
@@ -450,6 +465,8 @@ QListView {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 5px;
+	selection-background-color: rgb(0, 0, 0);
+	selection-color: rgb(255, 255, 255);
 }
 QListView::disabled {
 	background-color: rgb(31, 31, 31);
@@ -459,10 +476,12 @@ QListView::item {
 	padding: 2px 2px 2px 2px;
 	min-height: 16px;
 }
+/*
 QListView::item::selected {
 	background-color: rgb(0, 0, 0);
 	color: rgb(255, 255, 255);
 }
+*/
 
 /* -----------------------------
  *
@@ -473,6 +492,8 @@ QTableView {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 5px;
+	selection-background-color: rgb(0, 0, 0);
+	selection-color: rgb(255, 255, 255);
 }
 QTableView::disabled {
 	background-color: rgb(31, 31, 31);
@@ -482,10 +503,12 @@ QTableView::item {
 	padding: 2px 2px 2px 2px;
 	min-height: 16px;
 }
+/*
 QTableView::item::selected {
 	background-color: rgb(0, 0, 0);
 	color: rgb(255, 255, 255);
 }
+*/
 
 /* -----------------------------
  *
@@ -496,14 +519,18 @@ QTreeView {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 5px;
+	selection-background-color: rgb(0, 0, 0);
+	selection-color: rgb(255, 255, 255);
 }
 QTreeView::item {
 	padding: 2px 2px 2px 2px;
 }
+/*
 QTreeView::item::selected {
 	background-color: rgb(0, 0, 0);
 	color: rgb(255, 255, 255);
 }
+*/
 
 /* -----------------------------
  *
