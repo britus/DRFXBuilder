@@ -359,16 +359,20 @@ void MainWindow::on_twNodeList_itemClicked(QTableWidgetItem *item)
     ui->pbDelete->setEnabled(enabled);
 }
 
-void MainWindow::on_twNodeList_itemChanged(QTableWidgetItem *)
+void MainWindow::on_twNodeList_itemChanged(QTableWidgetItem *item)
 {
-    //on_twNodeList_itemClicked(item);
+#if 1
+    if (item) {
+        on_twNodeList_itemClicked(item);
+    }
+#endif
 }
 
 void MainWindow::on_twNodeList_itemSelectionChanged()
 {
-#if 0
+#if 1
     QTableWidgetItem *item;
-    if ((item = ui->twNodeList->currentItem())) {
+    if ((item = ui->twNodeList->currentItem()) && ui->twNodeList->row(item) > -1) {
         on_twNodeList_itemClicked(item);
     }
 #endif
@@ -1398,6 +1402,7 @@ inline void MainWindow::fillTableView(QTreeWidgetItem *node)
 // delete all rows in table view
 inline void MainWindow::cleanupTableView()
 {
+    ui->twNodeList->blockSignals(true);
     while (ui->twNodeList->rowCount() > 0) {
         QTableWidgetItem *a1 = ui->twNodeList->takeItem(0, 0);
         QTableWidgetItem *a2 = ui->twNodeList->takeItem(0, 1);
@@ -1406,6 +1411,7 @@ inline void MainWindow::cleanupTableView()
         delete a2;
     }
     ui->pbDelete->setEnabled(false);
+    ui->twNodeList->blockSignals(false);
 }
 
 inline void MainWindow::resetBundleStructure(QTreeWidgetItem *node)
