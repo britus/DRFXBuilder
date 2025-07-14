@@ -8,114 +8,6 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>EoF DRFX Bundle Builder</string>
-	<key>CFBundleExecutable</key>
-	<string>DRFXBuilder</string>
-	<key>CFBundleIconFile</key>
-	<string>drfxbuilder.icns</string>
-	<key>CFBundleIdentifier</key>
-	<string>org.eof.tools.DRFXBuilder</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>DRFX Bundle Builder</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>8</string>
-	<key>CFBundleVersion</key>
-	<string>1.0.3</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.developer-tools</string>
-	<key>LSMinimumSystemVersion</key>
-	<string>12.2</string>
-	<key>LSUIElement</key>
-	<false/>
-	<key>LSUIPresentationMode</key>
-	<integer>0</integer>
-	<key>LSVisibleInClassic</key>
-	<true/>
-	<key>NOTE</key>
-	<string>Copyright © 2025 by EoF Software Labs</string>
-	<key>NSDesktopFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2025 by EoF Software Labs</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSNetworkVolumesUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSAppDataUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSPrefPaneIconFile</key>
-	<string>drfxbuilder.icns</string>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
-	<key>NSSupportsAutomaticGraphicsSwitching</key>
-	<true/>
-	<key>NSSupportsSuddenTermination</key>
-	<true/>
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Shows informative messages about the state of the activities.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-	</array>
-	<key>UILaunchImageFile</key>
-	<string>drfxbuilder.png</string>
-	<key>UIPrerenderedIcon</key>
-	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>vfxbb</string>
-			</array>
-		</dict>
-	</array>
-	<key>UTImportedTypeDeclarations</key>
-	<array>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>vfxbb</string>
-				</array>
-			</dict>
-			<key>UTTypeDescription</key>
-			<string>DRFX Bundle Builder</string>
-		</dict>
-	</array>
-	<key>UTExportedTypeDeclarations</key>
-	<array>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>vfxbb</string>
-				</array>
-			</dict>
-			<key>UTTypeDescription</key>
-			<string>DRFX Bundle Builder</string>
-		</dict>
-	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -137,6 +29,114 @@
 			<array>
 				<string>org.eof.tools.DRFXBuilder.vfxbb</string>
 			</array>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>DRFXBuilder</string>
+	<key>CFBundleIconFile</key>
+	<string>drfxbuilder.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.eof.tools.DRFXBuilder</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>DRFX Bundle Builder</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>9</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>vfxbb</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1.0.3</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.2</string>
+	<key>LSUIElement</key>
+	<false/>
+	<key>LSUIPresentationMode</key>
+	<integer>0</integer>
+	<key>LSVisibleInClassic</key>
+	<true/>
+	<key>NOTE</key>
+	<string>Copyright © 2025 by EoF Software Labs</string>
+	<key>NSAppDataUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2025 by EoF Software Labs</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>Permit for read or write files.</string>
+	<key>NSPrefPaneIconFile</key>
+	<string>drfxbuilder.icns</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<true/>
+	<key>NSSupportsSuddenTermination</key>
+	<true/>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Shows informative messages about the state of the activities.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>UILaunchImageFile</key>
+	<string>drfxbuilder.png</string>
+	<key>UIPrerenderedIcon</key>
+	<false/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>DRFX Bundle Builder</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>vfxbb</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>DRFX Bundle Builder</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>vfxbb</string>
+				</array>
+			</dict>
 		</dict>
 	</array>
 </dict>
