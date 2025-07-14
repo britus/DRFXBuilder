@@ -76,6 +76,7 @@ private:
     QList<void*> m_secScopes;
 #endif
     QString m_projectFile;
+    bool m_isRunning;
 
 private:
 #ifdef Q_OS_MACOS

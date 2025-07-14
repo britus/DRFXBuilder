@@ -50,6 +50,7 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
     , m_secScopes()
 #endif
     , m_projectFile(projectFile)
+    , m_isRunning(false)
 {
     ui->setupUi(this);
 
@@ -154,6 +155,14 @@ void MainWindow::setOutputName(const QString &fileName)
 void MainWindow::setProjectFileName(const QString &fileName)
 {
     m_projectFile = fileName;
+
+    // if app allready up, trigger load project, otherwise
+    // store only the project file for startup
+    if (m_isRunning) {
+        QTimer::singleShot(500, this, [this](){
+            emit loadProject(m_projectFile);
+        });
+    }
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
@@ -814,6 +823,8 @@ inline void MainWindow::postInitUi()
     ui->pbBuildDRFX->setDefault(enable);
     ui->pbImport->setDefault(!enable);
     ui->txBundleFile->setText(tr("Bundle file: %1").arg(shortenText(m_outputName, 80)));
+
+    m_isRunning = true;
 }
 
 inline void MainWindow::updateTargetInfo()
