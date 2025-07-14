@@ -24,17 +24,20 @@ const char* GetBuildNumber() {
     return build ? [build UTF8String] : "0";
 }
 
-NSData* getBookmark(NSURL *securityScopedURL, NSString*)
+NSData* getBookmark(NSURL *fileURL, NSString*)
 {
     @autoreleasepool {
+        NSString* m1 = @"Stupid! Sandbox File Selector";
+        NSString* m2 = @"Select";
+        NSString* m3 = @"YOU MUST CREATE SECURITY BOOKMARKS FIRST!";
         NSOpenPanel *panel = [NSOpenPanel openPanel];
         [panel setCanChooseFiles:YES];
         [panel setCanChooseDirectories:YES];
         [panel setAllowsMultipleSelection:NO];
-        [panel setDirectoryURL:securityScopedURL];
-        [panel setTitle:@"Stupid! Sandbox File Selector"];
-        [panel setPrompt:@"Select"];
-        [panel setMessage:@"Sorry for that Sandbox SHIT! YOU MUST CREATE SECURITY BOOKMARKS FIRST!"];
+        [panel setDirectoryURL:fileURL];
+        [panel setTitle:m1.localizedCapitalizedString];
+        [panel setPrompt:m2.localizedCapitalizedString];
+        [panel setMessage:m3.localizedCapitalizedString];
 
         if ([panel runModal] == NSModalResponseOK) {
             NSURL *selectedURL = [[panel URLs] firstObject];
@@ -46,18 +49,14 @@ NSData* getBookmark(NSURL *securityScopedURL, NSString*)
                                                 error:&error];
                 if (bookmark) {
                     // Bookmark erfolgreich erstellt
-                    NSLog(@"Bookmark erfolgreich erzeugt.");
-
-                    // Beispiel: Bookmark in UserDefaults speichern
-                    [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:@"MySecurityScopedBookmark"];
+                    NSLog(@"Bookmark successfully built.");
+                    [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:selectedURL.absoluteString];
                     [[NSUserDefaults standardUserDefaults] synchronize];
                     return bookmark;
                 } else {
-                    NSLog(@"Fehler beim Erzeugen des Bookmarks: %@", error);
+                    NSLog(@"Could not create sercurity bookmarks: %@", error.localizedDescription);
                 }
             }
-        } else {
-            NSLog(@"Benutzer hat keine Datei ausgewählt.");
         }
     }
     return NULL;
@@ -67,20 +66,23 @@ void* openFileBookmark(void* fileName)
     NSString* _fileName = (NSString*) fileName;
     if (_fileName) {
         @autoreleasepool {
+            NSURL *fileUrl = [NSURL URLWithString:_fileName];
             BOOL isStale = NO;
             NSError *error = nil;
-            NSURL *fileUrl = [NSURL URLWithString:_fileName];
             NSData *bookmark = nil;
+            // get the last bookmark for file name in user persistence data
+            NSData* _bookmark = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
+            NSURL* outUrl = nil;
 
-            // find in user persistence data
-            NSURL* outUrl = [NSURL URLByResolvingBookmarkData:[[NSUserDefaults standardUserDefaults]
-                                                               objectForKey:_fileName]
-                                                      options:NSURLBookmarkResolutionWithSecurityScope
-                                                relativeToURL:nil
-                                          bookmarkDataIsStale:&isStale
-                                                        error:&error];
-            if (!outUrl) {
-                // new bookmark from URL
+            if (_bookmark) {
+                outUrl = [NSURL URLByResolvingBookmarkData:_bookmark
+                                                          options:NSURLBookmarkResolutionWithSecurityScope
+                                                    relativeToURL:nil
+                                              bookmarkDataIsStale:&isStale
+                                                            error:&error];
+            }
+
+            if (!outUrl) { // new bookmark from file URL
                 bookmark = [fileUrl bookmarkDataWithOptions:0
                              includingResourceValuesForKeys:nil
                                               relativeToURL:nil
@@ -90,14 +92,14 @@ void* openFileBookmark(void* fileName)
                     return nil;
                 }
 
-                // Lesezeichen wieder in eine URL auflösen
+                // Resolve bookmark to security scoped URL
                 outUrl = [NSURL URLByResolvingBookmarkData:bookmark
                                                    options:NSURLBookmarkResolutionWithoutUI
                                              relativeToURL:nil
                                        bookmarkDataIsStale:&isStale
                                                      error:&error];
                 if (!outUrl) {
-                    NSLog(@"Unable to resolve security scope bookmarks: %@", error.localizedDescription);
+                    NSLog(@"Unable to resolve security scoped bookmarks: %@", error.localizedDescription);
                     return nil;
                 }
 
@@ -136,11 +138,11 @@ void* openFileBookmark(void* fileName)
 }
 
 // close security access
-void closeFileBookmark(void* securityScopedURL)
+void closeFileBookmark(void* fileURL)
 {
-    NSURL *_securityScopedURL;
-    if ((_securityScopedURL = (NSURL*) securityScopedURL)) {
-        [_securityScopedURL stopAccessingSecurityScopedResource];
+    NSURL *_fileURL;
+    if ((_fileURL = (NSURL*) fileURL)) {
+        [_fileURL stopAccessingSecurityScopedResource];
     }
 }
 }

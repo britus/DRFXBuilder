@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "drfxbuilder.h"
 #include "drfxprogressdialog.h"
+#include "drfxsandbox.h"
 #include "drfxtypes.h"
 #include "ui_mainwindow.h"
 #include <QClipboard>
@@ -25,13 +26,13 @@
 #include <QStandardPaths>
 #include <QTableWidgetItem>
 #include <QTimer>
-#include "drfxsandbox.h"
 
 Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
 
 #ifdef Q_OS_MACOS
-inline static NSString* toFileUrl(const QString& path) {
+inline static NSString *toFileUrl(const QString &path)
+{
     return QStringLiteral("file://%1").arg(path).toNSString();
 }
 #endif
@@ -108,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
 #ifdef Q_OS_MACOS
-    foreach(auto item, m_secScopes) {
+    foreach (auto item, m_secScopes) {
         closeFileBookmark(item);
     }
 #endif
@@ -400,9 +401,6 @@ void MainWindow::on_pbSaveBundle_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
-#endif
         saveBundleStructure(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -569,9 +567,6 @@ void MainWindow::on_pbBuildDRFX_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) { //
         qDebug("File selected: %s", qPrintable(file));
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
-#endif
         setOutputName(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -614,9 +609,6 @@ void MainWindow::on_pbInstall_clicked()
 
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) { //
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
-#endif
         qDebug("File selected: %s", qPrintable(file));
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -687,8 +679,11 @@ void MainWindow::on_pbInstall_clicked()
                 tgtf.flush();
                 tgtf.close();
             },
-            [](DRFXProgressDialog *p) { //
+            [instFi](DRFXProgressDialog *p) { //
                 if (!p->isError()) {
+#ifdef Q_OS_MACOS
+                    openFileBookmark(toFileUrl(instFi.absoluteFilePath()));
+#endif
                     p->complete(tr("DRFX bundle installation successfully."));
                 }
                 p->deleteLater();
@@ -711,6 +706,9 @@ void MainWindow::onBuildStarted(DRFXBuilder *)
 void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 {
     ui->pbBuildDRFX->setEnabled(true);
+#ifdef Q_OS_MACOS
+    openFileBookmark(toFileUrl(fileName));
+#endif
     setOutputName(fileName);
     checkOutputExist();
     QMessageBox::information(this,
@@ -722,7 +720,7 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 #ifdef Q_OS_MACOS
 inline bool MainWindow::initSecurityScopes()
 {
-    void* scope;
+    void *scope;
     if (!(scope = openFileBookmark(toFileUrl(homePath())))) {
         return false;
     }
@@ -742,7 +740,7 @@ inline bool MainWindow::initSecurityScopes()
         return false;
     }
     return true;
- }
+}
 #endif
 
 inline void MainWindow::postInitUi()
@@ -796,7 +794,7 @@ inline void MainWindow::postInitUi()
                                  "Sorry! Limited directory and file access."));
 #endif
     }
- #endif
+#endif
 }
 
 inline void MainWindow::updateTargetInfo()
@@ -1025,23 +1023,25 @@ inline void MainWindow::saveBundleStructure(const QString &fileName)
         }
     }
 
-    QFile f(fi.absoluteFilePath());
-    if (!f.open(QFile::Truncate | QFile::WriteOnly)) {
-        QMessageBox::critical(this, //
-                              qApp->applicationDisplayName(),
-                              tr("Unable to save bundle structure."));
-        return;
-    }
-
     QJsonObject root;
     bundleToJson(root, ui->tvBundleStruct->topLevelItem(0));
 
     if (!root.isEmpty()) {
         const QJsonDocument jdoc(root);
+        QFile f(fi.absoluteFilePath());
+        if (!f.open(QFile::Truncate | QFile::WriteOnly)) {
+            QMessageBox::critical(this, //
+                                  qApp->applicationDisplayName(),
+                                  tr("Unable to save bundle structure."));
+            return;
+        }
         f.write(jdoc.toJson(QJsonDocument::Indented));
         //f.write(jdoc.toJson(QJsonDocument::Compact));
         f.flush();
         f.close();
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(f.fileName()));
+#endif
     }
 }
 

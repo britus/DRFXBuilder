@@ -1,6 +1,5 @@
 #!/bin/bash
-MYPWD=`basename`
-DEVID=`cat $0/.devid`
+DEVID=`cat .devid`
 APP="build/DRFXBuilder.app"
 
 if [ "x${QTDIR}" == "x" ] ; then
