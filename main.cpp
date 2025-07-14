@@ -1,5 +1,6 @@
 #include "drfxtypes.h"
 #include "mainwindow.h"
+#include "drfxsandbox.h"
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -121,7 +122,12 @@ int main(int argc, char *argv[])
     DRFXApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
     DRFXApplication::setApplicationDisplayName(APP_TITLE);
     DRFXApplication::setApplicationName(APP_TITLE);
-    DRFXApplication::setApplicationVersion("1.0.2");
+#ifdef Q_OS_MACOS
+    DRFXApplication::setApplicationVersion(QStringLiteral( //
+            "%1.%2").arg(GetBundleVersion(), GetBuildNumber()));
+#else
+    DRFXApplication::setApplicationVersion(QStringLiteral("1.0.3.8"));
+#endif
     DRFXApplication a(argc, argv);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

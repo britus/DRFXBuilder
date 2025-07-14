@@ -5,6 +5,25 @@
 #include <Foundation/NSURL.h>
 #include <AppKit/NSOpenPanel.h>
 
+extern "C" {
+const char* GetBundleVersion() {
+    NSBundle *bundle = [NSBundle mainBundle];
+    if (!bundle) return "Unknown";
+
+    NSDictionary *infoDict = [bundle infoDictionary];
+    NSString *version = [infoDict objectForKey:@"CFBundleVersion"];
+    return version ? [version UTF8String] : "0.0";
+}
+
+const char* GetBuildNumber() {
+    NSBundle *bundle = [NSBundle mainBundle];
+    if (!bundle) return "Unknown";
+
+    NSDictionary *infoDict = [bundle infoDictionary];
+    NSString *build = [infoDict objectForKey:@"CFBundleShortVersionString"];
+    return build ? [build UTF8String] : "0";
+}
+
 NSData* getBookmark(NSURL *securityScopedURL, NSString*)
 {
     @autoreleasepool {
@@ -70,7 +89,7 @@ void* openFileBookmark(void* fileName)
                     NSLog(@"Unable to create security scope bookmarks: %@", error.localizedDescription);
                     return nil;
                 }
-                
+
                 // Lesezeichen wieder in eine URL auflösen
                 outUrl = [NSURL URLByResolvingBookmarkData:bookmark
                                                    options:NSURLBookmarkResolutionWithoutUI
@@ -81,11 +100,11 @@ void* openFileBookmark(void* fileName)
                     NSLog(@"Unable to resolve security scope bookmarks: %@", error.localizedDescription);
                     return nil;
                 }
-                
+
                 [[NSUserDefaults standardUserDefaults] setObject:bookmark forKey:_fileName];
                 [[NSUserDefaults standardUserDefaults] synchronize];
             }
-                        
+
             if (isStale) {
                 NSLog(@"Security scope bookmarks is old. Please create a new one.");
             }
@@ -123,4 +142,5 @@ void closeFileBookmark(void* securityScopedURL)
     if ((_securityScopedURL = (NSURL*) securityScopedURL)) {
         [_securityScopedURL stopAccessingSecurityScopedResource];
     }
+}
 }
