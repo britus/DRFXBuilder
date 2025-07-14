@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QLocale>
 #include <QProxyStyle>
@@ -101,6 +102,15 @@ int main(int argc, char *argv[])
 
     /* QPA standard platform theme */
     setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
+
+#if 0
+#ifdef Q_OS_MACOS
+    QFileInfo fi(argv[0]);
+    QString pluginPath = fi.absolutePath().replace("/MacOS", "/PlugIns", Qt::CaseInsensitive);
+    qDebug() << pluginPath;
+    setenv("QT_QPA_PLATFORM_PLUGIN_PATH", qPrintable(pluginPath), 0);
+#endif
+#endif
 
     DRFXApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
     DRFXApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);

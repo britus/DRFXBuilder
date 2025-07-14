@@ -14,6 +14,8 @@ fi
 
 if [ -r ${PROJECT_DIR}/build/xcode/${XC_PROJECT} ] ; then
     cd build/xcode
+	find . -name ".DS*" -exec rm {} ";"
+	xattr -cr .
     xcodebuild -arch `uname -m` -project ${XC_PROJECT} -target DRFXBuilder
 else
     mkdir -p build/xcode

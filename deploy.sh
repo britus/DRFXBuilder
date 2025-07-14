@@ -1,6 +1,10 @@
 #!/bin/bash
-DEVID=`cat .devid`
+MYPWD=`basename`
+DEVID=`cat $0/.devid`
 APP="build/DRFXBuilder.app"
+
+find . -name ".DS*" -exec rm {} ";"
+xattr -cr .
 
 if [ "x${1}" == "x" ] ; then
 	echo "Using QT build: ${APP}"
@@ -9,4 +13,4 @@ else
 	echo "Using build: ${APP}"
 fi
 
-macdeployqt ${APP} -always-overwrite -timestamp -appstore-compliant -codesign=${DEVID}
+${QTDIR}/bin/macdeployqt ${APP} -always-overwrite -timestamp -appstore-compliant -codesign=${DEVID}
