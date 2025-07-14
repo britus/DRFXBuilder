@@ -154,7 +154,9 @@ void MainWindow::setOutputName(const QString &fileName)
 void MainWindow::setProjectFileName(const QString &fileName)
 {
     m_projectFile = fileName;
-    loadBundleStructure(fileName);
+    QTimer::singleShot(2000, this, [this, fileName](){
+        loadBundleStructure(fileName);
+    });
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
