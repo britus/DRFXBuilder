@@ -1,5 +1,8 @@
 #include "drfxbuilder.h"
 #include "drfxtypes.h"
+#ifdef Q_OS_MACOS
+#include "drfxsandbox.h"
+#endif
 #include <QDebug>
 #include <QDir>
 #include <QFile>
@@ -113,6 +116,11 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
             if (!srcFi.suffix().isEmpty()) {
                 zipName += "." + srcFi.suffix();
             }
+#ifdef Q_OS_MACOS__
+            void* secUrl;
+            secUrl = openFileBookmark(QStringLiteral( //
+                "file://%1").arg(nd.path).toNSString());
+#endif
             QFile inFile(nd.path);
             if (!inFile.open(QIODevice::ReadOnly)) {
                 emit buildError(this, tr("Unable to open source file: %1").arg(inFile.fileName()));
@@ -123,6 +131,12 @@ inline int DRFXBuilder::createBundle(QThread *t, QZipWriter *zip, QTreeWidgetIte
             zip->setCompressionPolicy(QZipWriter::AutoCompress);
             zip->setCreationPermissions(permissions);
             zip->addFile(prefix + "/" + zipName, &inFile);
+            
+#ifdef Q_OS_MACOS__
+            if (secUrl) {
+                closeFileBookmark(secUrl);
+            }
+#endif
             if (zip->status() != QZipWriter::NoError) {
                 emit buildError(this, tr("Unable to add file entry: %1").arg(zipName));
                 return -EIO;

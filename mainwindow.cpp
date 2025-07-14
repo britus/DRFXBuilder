@@ -25,9 +25,16 @@
 #include <QStandardPaths>
 #include <QTableWidgetItem>
 #include <QTimer>
+#include "drfxsandbox.h"
 
 Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
+
+#ifdef Q_OS_MACOS
+inline static NSString* toFileUrl(const QString& path) {
+    return QStringLiteral("file://%1").arg(path).toNSString();
+}
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -38,6 +45,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_outputName()
     , m_installPath(templatePath(TAppType::ATDavinci))
     , m_scriptPath(scriptPath(TAppType::ATDavinci))
+#ifdef Q_OS_MACOS
+    , m_secScopes()
+#endif
 {
     ui->setupUi(this);
 
@@ -97,6 +107,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+#ifdef Q_OS_MACOS
+    foreach(auto item, m_secScopes) {
+        closeFileBookmark(item);
+    }
+#endif
     delete ui;
 }
 
@@ -349,6 +364,9 @@ void MainWindow::on_pbLoadBundle_clicked()
 
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         loadBundleStructure(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -366,6 +384,7 @@ void MainWindow::on_pbLoadBundle_clicked()
     d.setOption(QFileDialog::Option::ReadOnly, true);
     d.setOption(QFileDialog::DontConfirmOverwrite, false);
     d.setOption(QFileDialog::DontUseNativeDialog, false);
+    d.setViewMode(QFileDialog::List);
     d.setNameFilters(QStringList() << "*.vfxbb");
     d.setDefaultSuffix(".vfxbb");
     if (d.exec() == QFileDialog::Accepted) {
@@ -381,6 +400,9 @@ void MainWindow::on_pbSaveBundle_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         saveBundleStructure(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -408,6 +430,9 @@ void MainWindow::on_pbSelectMacro_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         on_edFusionMacro_textEdited(file);
         ui->edFusionMacro->setText(file);
         ui->edFusionMacro->setFocus();
@@ -437,6 +462,9 @@ void MainWindow::on_pbSelectIcon_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         on_edIconFile_textEdited(file);
         ui->edIconFile->setText(file);
         ui->edIconFile->setFocus();
@@ -541,6 +569,9 @@ void MainWindow::on_pbBuildDRFX_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) { //
         qDebug("File selected: %s", qPrintable(file));
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         setOutputName(file);
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -583,6 +614,9 @@ void MainWindow::on_pbInstall_clicked()
 
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) { //
+#ifdef Q_OS_MACOS
+        openFileBookmark(toFileUrl(file));
+#endif
         qDebug("File selected: %s", qPrintable(file));
     });
     connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
@@ -685,6 +719,32 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
     builder->deleteLater();
 }
 
+#ifdef Q_OS_MACOS
+inline bool MainWindow::initSecurityScopes()
+{
+    void* scope;
+    if (!(scope = openFileBookmark(toFileUrl(homePath())))) {
+        return false;
+    }
+    if (!(scope = openFileBookmark(toFileUrl(documentsPath())))) {
+        return false;
+    }
+    if (!(scope = openFileBookmark(toFileUrl(templatePath(m_appType))))) {
+        return false;
+    }
+    if (!(scope = openFileBookmark(toFileUrl(macroPath(m_appType))))) {
+        return false;
+    }
+    if (!(scope = openFileBookmark(toFileUrl(scriptPath(m_appType))))) {
+        return false;
+    }
+    if (!(scope = openFileBookmark(toFileUrl(QStringLiteral("/Volumes"))))) {
+        return false;
+    }
+    return true;
+ }
+#endif
+
 inline void MainWindow::postInitUi()
 {
     ui->tvBundleStruct->expandAll();
@@ -723,6 +783,20 @@ inline void MainWindow::postInitUi()
 
     // already generated ?
     checkOutputExist();
+
+#ifdef Q_OS_MACOS
+    // sandbox bookmars
+    if (!initSecurityScopes()) {
+        qCritical("Unable to open sandbox security scopes. " //
+                  "Sorry! Limited directory and file access.");
+#if 0
+        QMessageBox::critical(this, //
+                              qApp->applicationDisplayName(),
+                              tr("Unable to open sandbox security scopes.\n" //
+                                 "Sorry! Limited directory and file access."));
+#endif
+    }
+ #endif
 }
 
 inline void MainWindow::updateTargetInfo()
@@ -1187,6 +1261,9 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
             }
             case TNodeType::NTFileItem: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
+#ifdef Q_OS_MACOS
+                    openFileBookmark(toFileUrl(nodePath));
+#endif
                     if (addFileNode(parent, 0x04, nodePath) != 0) {
                         QMessageBox::critical(this,
                                               qApp->applicationDisplayName(), //

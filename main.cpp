@@ -22,12 +22,15 @@ public:
         /* macintosh, Windows, Fusion */
         QString styleName;
 
-#if defined(Q_OS_MACOS) || defined(Q_OS_UNIX)
+        //qDebug() << QStyleFactory::keys();
+
+#if defined(Q_OS_MACOS)
+        styleName = "Fusion"; //"macOS";
+#elif defined(Q_OS_LINUX)
         styleName = "Fusion";
 #else
         styleName = "Windows";
 #endif
-
         /* configure custom GUI style hinter */
         QStyle *style;
         if ((style = QStyleFactory::create(styleName))) {
@@ -100,16 +103,15 @@ int main(int argc, char *argv[])
     setenv("QT_EVENT_DISPATCHER_CORE_FOUNDATION", "1", 0);
     setenv("BT_TEST_DEVICE", "1", 0);
 
+#ifndef Q_OS_MACOS
     /* QPA standard platform theme */
-    setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
+    //setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
+#endif
 
-#if 0
-#ifdef Q_OS_MACOS
+#ifdef _Q_OS_MACOS_disabled_
     QFileInfo fi(argv[0]);
     QString pluginPath = fi.absolutePath().replace("/MacOS", "/PlugIns", Qt::CaseInsensitive);
-    qDebug() << pluginPath;
     setenv("QT_QPA_PLATFORM_PLUGIN_PATH", qPrintable(pluginPath), 0);
-#endif
 #endif
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

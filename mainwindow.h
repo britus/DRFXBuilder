@@ -68,8 +68,14 @@ private:
     QString m_installPath;
     QString m_scriptPath;
     quint8 m_appType;
+#ifdef Q_OS_MACOS
+    QList<void*> m_secScopes;
+#endif
 
 private:
+#ifdef Q_OS_MACOS
+    inline bool initSecurityScopes();
+#endif
     inline void postInitUi();
     inline void updateTargetInfo();
     inline void checkInputFields();
