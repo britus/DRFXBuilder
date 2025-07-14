@@ -19,9 +19,10 @@ public:
 
     int exec()
     {
+        QString projectFile;
         const QStringList args = arguments();
         if (args.size() > 1) {
-            m_projectFile = args.at(1);
+            projectFile = args.at(1);
         }
 
         /* Override commandline style with our fixed GUI style type */
@@ -43,10 +44,12 @@ public:
             setStyle(myStyle);
         }
 
-        MainWindow w(m_projectFile);
-        w.show();
+        m_window = new MainWindow(projectFile);
+        m_window->show();
+        int rc = QApplication::exec();
+        delete m_window;
 
-        return QApplication::exec();
+        return rc;
     }
 
     bool event(QEvent *event) override
@@ -56,8 +59,8 @@ public:
             const QUrl url = openEvent->url();
             if (url.isLocalFile()) {
                 QFileInfo fi(url.toLocalFile());
-                m_projectFile = fi.absoluteFilePath();
-                qDebug() << "QEvent::FileOpen ->" << m_projectFile;
+                qDebug() << "QEvent::FileOpen ->" << fi.absoluteFilePath();
+                m_window->setProjectFileName(fi.absoluteFilePath());
             } else if (url.isValid()) {
                 // process according to the URL's schema
                 qDebug() << "QEvent::FileOpen ->" << url;
@@ -96,7 +99,7 @@ private:
     };
 
 private:
-    QString m_projectFile;
+    MainWindow* m_window;
 };
 
 int main(int argc, char *argv[])
