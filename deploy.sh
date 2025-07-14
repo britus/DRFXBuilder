@@ -3,6 +3,11 @@ MYPWD=`basename`
 DEVID=`cat $0/.devid`
 APP="build/DRFXBuilder.app"
 
+if [ "x${QTDIR}" == "x" ] ; then
+	echo "Set QTDIR=<where your QT platform is installed>"
+	exit 1
+fi
+
 find . -name ".DS*" -exec rm {} ";"
 xattr -cr .
 
