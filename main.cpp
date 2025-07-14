@@ -112,7 +112,9 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     DRFXApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+#endif
     DRFXApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
     DRFXApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
     DRFXApplication::setApplicationDisplayName(APP_TITLE);

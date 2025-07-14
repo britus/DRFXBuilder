@@ -168,10 +168,17 @@ RESOURCES += \
 	$$PWD/DRFXBuilder.qrc
 
 DISTFILES += \
+	DRFXBuilder_no_sandbox.entitlements \
+	DRFXBuilder_sandbox.entitlements \
 	LICENSE \
 	README.md \
 	appstyle.css \
 	deploy.sh \
 	DRFXBuilder.lua \
 	make.sh \
-	qmake-options.txt
+	privacy.txt \
+	qmake-options.txt \
+	xcode-macdeployqt.txt \
+	xcode_script_env.txt \
+	xcode_script_qt5.sh \
+	xcode_script_qt6.sh
