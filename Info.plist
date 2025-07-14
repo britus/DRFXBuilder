@@ -8,31 +8,6 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>EoF DRFX Bundle Builder</string>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeIconFile</key>
-			<string>drfxbuilder</string>
-			<key>CFBundleTypeName</key>
-			<string>DRFX Bundle Builder Project</string>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>LSHandlerRank</key>
-			<string>Default</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>org.eof.tools.DRFXBundleBuilder.vxbb</string>
-			</array>
-			<key>LSTypeIsPackage</key>
-			<false/>
-			<key>NSExportableTypes</key>
-			<array>
-				<string>vfxbb</string>
-			</array>
-			<key>NSIsRelatedItemType</key>
-			<string>YES</string>
-		</dict>
-	</array>
 	<key>CFBundleExecutable</key>
 	<string>DRFXBuilder</string>
 	<key>CFBundleIconFile</key>
@@ -47,17 +22,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>8</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>vfxbb</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleVersion</key>
 	<string>1.0.3</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -109,26 +73,20 @@
 	<string>drfxbuilder.png</string>
 	<key>UIPrerenderedIcon</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>vfxbb</string>
+			</array>
+		</dict>
+	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>text/json</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>DRFX Bundle Builder Project</string>
-			<key>UTTypeIconFile</key>
-			<string>drfxbuilder</string>
-			<key>UTTypeIcons</key>
-			<dict>
-				<key>UTTypeIconBackgroundName</key>
-				<string>drfxbuilder</string>
-				<key>UTTypeIconBadgeName</key>
-				<string>drfxbuilder</string>
-				<key>UTTypeIconText</key>
-				<string>DRFX Bundle Builder</string>
-			</dict>
 			<key>UTTypeIdentifier</key>
 			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
 			<key>UTTypeTagSpecification</key>
@@ -137,13 +95,49 @@
 				<array>
 					<string>vfxbb</string>
 				</array>
-				<key>public.mime-type</key>
+			</dict>
+			<key>UTTypeDescription</key>
+			<string>DRFX Bundle Builder</string>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
 				<array>
-					<string>application/vfxbb</string>
+					<string>vfxbb</string>
 				</array>
 			</dict>
+			<key>UTTypeDescription</key>
+			<string>DRFX Bundle Builder</string>
 		</dict>
-		<dict/>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeIconFiles</key>
+			<array>
+				<string>icon_16x16.png</string>
+				<string>icon_32x32.png</string>
+				<string>icon_128x128.png</string>
+				<string>icon_256x256.png</string>
+				<string>icon_512x512.png</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>DRFX Bundle Builder</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.eof.tools.DRFXBuilder.vfxbb</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

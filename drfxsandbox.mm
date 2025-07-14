@@ -65,6 +65,8 @@ void* openFileBookmark(void* fileName)
 {
     NSString* _fileName = (NSString*) fileName;
     if (_fileName) {
+        NSLog(@"[OS-SANDBOX] Request for file or path access: %@", _fileName);
+
         @autoreleasepool {
             NSURL *fileUrl = [NSURL URLWithString:_fileName];
             BOOL isStale = NO;

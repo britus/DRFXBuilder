@@ -19,12 +19,15 @@ public:
 
     int exec()
     {
+        const QStringList args = arguments();
+        if (!args.isEmpty()) {
+            m_projectFile = args.at(0);
+        }
+
         /* Override commandline style with our fixed GUI style type */
         /* macintosh, Windows, Fusion */
         QString styleName;
-
         //qDebug() << QStyleFactory::keys();
-
 #if defined(Q_OS_MACOS)
         styleName = "Fusion"; //"macOS";
 #elif defined(Q_OS_LINUX)
@@ -40,6 +43,12 @@ public:
             setStyle(myStyle);
         }
 
+        MainWindow w;
+        if (!m_projectFile.isEmpty()) {
+            w.setProjectFileName(m_projectFile);
+        }
+        w.show();
+
         return QApplication::exec();
     }
 
@@ -49,18 +58,20 @@ public:
             QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
             const QUrl url = openEvent->url();
             if (url.isLocalFile()) {
-                QFile localFile(url.toLocalFile());
-                // read from local file
+                QFileInfo fi(url.toLocalFile());
+                m_projectFile = fi.absoluteFilePath();
+                qDebug() << "QEvent::FileOpen ->" << m_projectFile;
             } else if (url.isValid()) {
                 // process according to the URL's schema
+                qDebug() << "QEvent::FileOpen ->" << url;
             } else {
-                // parse openEvent->file()
+                qDebug() << "QEvent::FileOpen ->" << url;
             }
         }
-
         return QApplication::event(event);
     }
 
+private:
     class ApplicationStyle : public QProxyStyle
     {
     public:
@@ -86,6 +97,9 @@ public:
             return QProxyStyle::styleHint(hint, option, widget, returnData);
         }
     };
+
+private:
+    QString m_projectFile;
 };
 
 int main(int argc, char *argv[])
@@ -150,9 +164,6 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
-    MainWindow w;
-    w.show();
 
     return a.exec();
 }

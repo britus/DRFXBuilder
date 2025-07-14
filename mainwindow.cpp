@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 #ifdef Q_OS_MACOS
     , m_secScopes()
 #endif
+    , m_projectFile()
 {
     ui->setupUi(this);
 
@@ -141,6 +142,11 @@ void MainWindow::setOutputName(const QString &fileName)
     ui->txBundleFile->setText(tr( //
                                   "Bundle file: %1")
                                   .arg(shortenText(m_outputName, 80)));
+}
+
+void MainWindow::setProjectFileName(const QString &fileName)
+{
+    m_projectFile = fileName;
 }
 
 void MainWindow::setIconPath(const QString &path, const QString &fileName)
@@ -766,7 +772,11 @@ inline void MainWindow::postInitUi()
     }
 
     // restore bundle */
-    loadBundleStructure(bundleStuctureFile());
+    if (m_projectFile.isEmpty()) {
+        loadBundleStructure(bundleStuctureFile());
+    } else {
+        loadBundleStructure(m_projectFile);
+    }
 
     // any content exist?
     const bool enable = hasUserContent();
@@ -812,6 +822,9 @@ inline void MainWindow::updateTargetInfo()
 inline void MainWindow::checkOutputExist()
 {
     qDebug() << "[CHK-OUT]" << m_outputName;
+#ifdef Q_OS_MACOS
+    openFileBookmark(toFileUrl(m_outputName));
+#endif
     if (QFile::exists(m_outputName)) {
         ui->pbImport->setDefault(false);
         ui->pbBuildDRFX->setDefault(false);

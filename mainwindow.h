@@ -23,6 +23,7 @@ public:
     ~MainWindow();
 
 public slots:
+    void setProjectFileName(const QString &fileName);
     void setMacroPath(const QString &path, const QString &fileName = "");
     void setIconPath(const QString &path, const QString &fileName = "");
     void setOutputName(const QString &fileName);
@@ -71,6 +72,7 @@ private:
 #ifdef Q_OS_MACOS
     QList<void*> m_secScopes;
 #endif
+    QString m_projectFile;
 
 private:
 #ifdef Q_OS_MACOS
