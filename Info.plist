@@ -44,7 +44,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>16</string>
+	<string>18</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -72,22 +72,10 @@
 	<true/>
 	<key>NOTE</key>
 	<string>Copyright © 2025 by EoF Software Labs</string>
-	<key>NSAppDataUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSDesktopFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Permit for read or write files.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2025 by EoF Software Labs</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Permit for read or write files.</string>
-	<key>NSNetworkVolumesUsageDescription</key>
-	<string>Permit for read or write files.</string>
 	<key>NSPrefPaneIconFile</key>
 	<string>drfxbuilder.icns</string>
 	<key>NSPrincipalClass</key>
@@ -96,8 +84,6 @@
 	<true/>
 	<key>NSSupportsSuddenTermination</key>
 	<true/>
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Shows informative messages about the state of the activities.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
