@@ -1,6 +1,4 @@
-//#include <Foundation/Foundation.h>
 #include <Foundation/NSData.h>
-#include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSURL.h>
 #include <AppKit/NSOpenPanel.h>
@@ -13,7 +11,7 @@ extern "C" {
 const char* GetBundleVersion() {
     NSBundle *bundle = [NSBundle mainBundle];
     if (!bundle) return "Unknown";
-    
+
     NSDictionary *infoDict = [bundle infoDictionary];
     NSString *version = [infoDict objectForKey:@"CFBundleVersion"];
     return version ? [version UTF8String] : "0.0";
@@ -25,7 +23,7 @@ const char* GetBundleVersion() {
 const char* GetBuildNumber() {
     NSBundle *bundle = [NSBundle mainBundle];
     if (!bundle) return "Unknown";
-    
+
     NSDictionary *infoDict = [bundle infoDictionary];
     NSString *build = [infoDict objectForKey:@"CFBundleShortVersionString"];
     return build ? [build UTF8String] : "0";
@@ -39,13 +37,13 @@ void* setSandboxBookmark(void* fileName)
     NSString* _fileName = (NSString*) fileName;
     if (_fileName) {
         NSLog(@"[OS-SANDBOX] Request for resource access:\n%@", _fileName);
-        
+
         @autoreleasepool {
             NSURL *fileUrl = [NSURL URLWithString:_fileName];
             BOOL isStale = NO;
             NSError *error = nil;
             NSURL* outUrl = nil;
-            
+
             // get the last bookmark for file name in user persistence data
             NSData* bookmark = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
             if (bookmark) {
@@ -65,9 +63,11 @@ void* setSandboxBookmark(void* fileName)
                                                       error:&error];
                 if (!bookmark) {
                     NSLog(@"[OS-SANDBOX] Unable to create security scope bookmark:\n%@", error.localizedDescription);
+                    [keys release];
                     return nil;
                 }
-                
+                [keys release];
+
                 // Resolve bookmark to security scoped URL
                 outUrl = [NSURL URLByResolvingBookmarkData:bookmark
                                                    options:NSURLBookmarkResolutionWithoutUI
@@ -96,7 +96,7 @@ void* setSandboxBookmark(void* fileName)
             }
         }
     }
-    
+
     return NULL;
 }
 
