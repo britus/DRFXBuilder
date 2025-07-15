@@ -19,13 +19,14 @@ const char* GetBuildNumber();
  * @param fileName
  * @return Pointer to the security scoped URL or NULL if failed
  */
-void* openFileBookmark(void* fileName);
+void* setSandboxBookmark(void* fileName);
 
 /**
  * @brief Remove the given security scoped URL and does not remove the bookmark in the default user settings
  * @param Pointer to the security scoped URL
  */
 void closeFileBookmark(void* securityScopedURL);
+
 }
 
 #endif // DRFXSANDBOX_H

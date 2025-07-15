@@ -24,4 +24,7 @@
         <file>appstyle.css</file>
         <file>appstyleqt5.css</file>
     </qresource>
+    <qresource prefix="/scripts">
+        <file>DRFXBuilder.lua</file>
+    </qresource>
 </RCC>

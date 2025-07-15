@@ -79,7 +79,7 @@ QPushButton {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 12px;
-	min-width: 100px;
+	min-width: 120px;
 	min-height: 24px;
 }
 QPushButton::focus {

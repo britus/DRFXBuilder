@@ -19,7 +19,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(const QString& projectFile, QWidget *parent = nullptr);
+    MainWindow(const QString &projectFile, QWidget *parent = nullptr);
     ~MainWindow();
 
 public slots:
@@ -63,6 +63,8 @@ private slots:
     void on_pbBuildDRFX_clicked();
     void on_pbInstall_clicked();
 
+    void on_actionInstallButton_triggered();
+
 private:
     Ui::MainWindow *ui;
     QSettings m_settings;
@@ -72,16 +74,17 @@ private:
     QString m_installPath;
     QString m_scriptPath;
     quint8 m_appType;
-#ifdef Q_OS_MACOS
-    QList<void*> m_secScopes;
-#endif
     QString m_projectFile;
     bool m_isRunning;
 
 private:
-#ifdef Q_OS_MACOS
-    inline bool initSecurityScopes();
+#ifdef OSX_SANDBOXED_APP
+    inline void initSecurityScopes();
+    inline bool checkBundleFileAccess(QTreeWidgetItem *node);
 #endif
+    inline void showError(const QString &message);
+    inline void showInfo(const QString &message);
+    inline uint showQuestion(const QString &message);
     inline void postInitUi();
     inline void updateTargetInfo();
     inline void checkInputFields();

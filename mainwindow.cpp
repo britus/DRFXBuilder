@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "drfxbuilder.h"
 #include "drfxprogressdialog.h"
+#ifdef OSX_SANDBOXED_APP
 #include "drfxsandbox.h"
+#endif
 #include "drfxtypes.h"
 #include "ui_mainwindow.h"
 #include <QClipboard>
@@ -30,14 +32,14 @@
 Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
 
-#ifdef Q_OS_MACOS
+#ifdef OSX_SANDBOXED_APP
 inline static NSString *toFileUrl(const QString &path)
 {
     return QStringLiteral("file://%1").arg(path).toNSString();
 }
 #endif
 
-MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
+MainWindow::MainWindow(const QString &projectFile, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_settings(configFile(), QSettings::Format::NativeFormat)
@@ -46,9 +48,6 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
     , m_outputName()
     , m_installPath(templatePath(TAppType::ATDavinci))
     , m_scriptPath(scriptPath(TAppType::ATDavinci))
-#ifdef Q_OS_MACOS
-    , m_secScopes()
-#endif
     , m_projectFile(projectFile)
     , m_isRunning(false)
 {
@@ -97,12 +96,15 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
         }
     });
 
-    connect(this, &MainWindow::loadProject, this, [this](const QString& fileName) { //
-        m_projectFile = fileName;
-        QTimer::singleShot(500, this, [this](){
-            loadBundleStructure(m_projectFile);
-        });
-    }, Qt::QueuedConnection);
+    connect(
+        this,
+        &MainWindow::loadProject,
+        this,
+        [this](const QString &fileName) { //
+            m_projectFile = fileName;
+            QTimer::singleShot(500, this, [this]() { loadBundleStructure(m_projectFile); });
+        },
+        Qt::QueuedConnection);
 
     /* load settings / defaults */
     m_appType = m_settings.value("app.type", TAppType::ATNone).toUInt();
@@ -111,17 +113,17 @@ MainWindow::MainWindow(const QString& projectFile, QWidget *parent)
     m_iconPath = m_settings.value("icon.path", m_iconPath).toString();
     m_scriptPath = m_settings.value("script.path", m_scriptPath).toString();
 
+#ifdef OSX_SANDBOXED_APP
+    // get sandbox bookmars
+    initSecurityScopes();
+#endif
+
     // async update ui fields
     checkBlackmagic();
 }
 
 MainWindow::~MainWindow()
 {
-#ifdef Q_OS_MACOS
-    foreach (auto item, m_secScopes) {
-        closeFileBookmark(item);
-    }
-#endif
     delete ui;
 }
 
@@ -159,9 +161,7 @@ void MainWindow::setProjectFileName(const QString &fileName)
     // if app allready up, trigger load project, otherwise
     // store only the project file for startup
     if (m_isRunning) {
-        QTimer::singleShot(500, this, [this](){
-            emit loadProject(m_projectFile);
-        });
+        QTimer::singleShot(500, this, [this]() { emit loadProject(m_projectFile); });
     }
 }
 
@@ -181,6 +181,79 @@ void MainWindow::setMacroPath(const QString &path, const QString &fileName)
     if (!fileName.isEmpty()) {
         m_settings.setValue("macro.file", fileName);
     }
+}
+
+void MainWindow::on_actionInstallButton_triggered()
+{
+    auto installCode = [this](const QString &outFileName) {
+        QFile fin(":/scripts/DRFXBuilder.lua");
+        if (!fin.open(QFile::ReadOnly)) {
+            showError(tr("Could not find script resource."));
+            return;
+        }
+#ifdef OSX_SANDBOXED_APP
+        setSandboxBookmark(toFileUrl(outFileName));
+#endif
+        QFile fout(outFileName);
+        if (!fout.open(QFile::WriteOnly | QFile::Truncate)) {
+            showError(tr("Could not create quick access script resource."));
+            return;
+        }
+        qint64 rc;
+        rc = fout.write(fin.readAll());
+        fout.flush();
+        fout.close();
+        fin.close();
+        if (rc > 0) {
+            QString s;
+            switch (m_appType) {
+                case TAppType::ATDavinci: {
+                    s = "DaVinci Resolve";
+                    break;
+                }
+                case TAppType::ATFusion: {
+                    s = "Fusion";
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            showInfo(tr("Quick access script for Blackmagic Design's %1 installed.").arg(s));
+        } else {
+            showError(tr("Could not quick access script."));
+        }
+    };
+    const QString outFileName = m_scriptPath + QDir::separator() + "DRFXBuilder.lua";
+#ifdef OSX_SANDBOXED_APP
+    QFileDialog d(this);
+    connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) { //
+        qDebug("File selected: %s", qPrintable(file));
+    });
+    connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) { //
+        qDebug("Directory entered: %s", qPrintable(directory));
+    });
+    d.setWindowTitle(tr("Install quick acces script"));
+    d.setWindowFilePath(outFileName);
+    d.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
+    d.setFileMode(QFileDialog::FileMode::Directory);
+    d.setFilter(QDir::NoFilter);
+    d.setDirectory(outFileName);
+    d.setLabelText(QFileDialog::DialogLabel::FileName, tr("Script file:"));
+    d.setLabelText(QFileDialog::DialogLabel::FileType, tr("Extension:"));
+    d.setOption(QFileDialog::Option::ReadOnly, true);
+    d.setOption(QFileDialog::Option::ShowDirsOnly, true);
+    d.setOption(QFileDialog::Option::DontConfirmOverwrite, false);
+    d.setOption(QFileDialog::Option::DontUseNativeDialog, false);
+    d.setNameFilters(QStringList() << "*.lua");
+    d.setHistory(QStringList() << outFileName);
+    d.setDefaultSuffix(".lua");
+    if (d.exec() == QFileDialog::Accepted) {
+        installCode(outFileName);
+    }
+#else
+    installCode(outFileName);
+#endif
 }
 
 void MainWindow::on_edFusionMacro_textChanged(const QString &value)
@@ -380,10 +453,7 @@ void MainWindow::on_twNodeList_itemSelectionChanged()
 
 void MainWindow::on_pbNewBundle_clicked()
 {
-    if (QMessageBox::question(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Do you want to create new bundle?"))
-        == QMessageBox::Yes) {
+    if (showQuestion(tr("Do you want to create new bundle?")) == QMessageBox::Yes) {
         resetBundleStructure(ui->tvBundleStruct->topLevelItem(0));
         ui->pbBuildDRFX->setDefault(false);
         ui->pbBuildDRFX->setEnabled(false);
@@ -396,8 +466,8 @@ void MainWindow::on_pbLoadBundle_clicked()
 
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
+#ifdef OSX_SANDBOXED_APP
+        setSandboxBookmark(toFileUrl(file));
 #endif
         loadBundleStructure(file);
     });
@@ -459,8 +529,8 @@ void MainWindow::on_pbSelectMacro_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
+#ifdef OSX_SANDBOXED_APP
+        setSandboxBookmark(toFileUrl(file));
 #endif
         on_edFusionMacro_textEdited(file);
         ui->edFusionMacro->setText(file);
@@ -491,8 +561,8 @@ void MainWindow::on_pbSelectIcon_clicked()
     QFileDialog d(this);
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(file));
+#ifdef OSX_SANDBOXED_APP
+        setSandboxBookmark(toFileUrl(file));
 #endif
         on_edIconFile_textEdited(file);
         ui->edIconFile->setText(file);
@@ -564,10 +634,7 @@ void MainWindow::on_pbDelete_clicked()
     }
 
     if (twi) {
-        if (QMessageBox::question(this,
-                                  qApp->applicationDisplayName(), //
-                                  tr("Do you want to delete object: %1").arg(twi->text(0)))
-            == QMessageBox::Yes) {
+        if (showQuestion(tr("Do you want to delete object: %1").arg(twi->text(0))) == QMessageBox::Yes) {
             parent = twi->parent();
             parent->removeChild(twi);
             delete twi;
@@ -618,6 +685,11 @@ void MainWindow::on_pbBuildDRFX_clicked()
     d.setHistory(QStringList() << outFi.absoluteFilePath());
     d.setDefaultSuffix(".drfx");
     if (d.exec() == QFileDialog::Accepted) {
+#ifdef OSX_SANDBOXED_APP
+        if (!checkBundleFileAccess(ui->tvBundleStruct->topLevelItem(0))) {
+            return;
+        }
+#endif
         // run async in with progress dialog UI
         DRFXProgressDialog *pd = new DRFXProgressDialog(this);
         connect(builder, &DRFXBuilder::buildItemsDone, pd, &DRFXProgressDialog::setValue);
@@ -666,9 +738,7 @@ void MainWindow::on_pbInstall_clicked()
             QDateTime tdt = instFi.fileTime(QFile::FileTime::FileModificationTime);
             QDateTime sdt = srcFi.fileTime(QFile::FileTime::FileModificationTime);
             if (instFi.size() == srcFi.size() && tdt == sdt) {
-                QMessageBox::critical(this,
-                                      qApp->applicationDisplayName(), //
-                                      tr("Target file is identical to source file."));
+                showError(tr("Target file is identical to source file."));
                 return;
             }
         }
@@ -712,8 +782,8 @@ void MainWindow::on_pbInstall_clicked()
             },
             [instFi](DRFXProgressDialog *p) { //
                 if (!p->isError()) {
-#ifdef Q_OS_MACOS
-                    openFileBookmark(toFileUrl(instFi.absoluteFilePath()));
+#ifdef OSX_SANDBOXED_APP
+                    setSandboxBookmark(toFileUrl(instFi.absoluteFilePath()));
 #endif
                     p->complete(tr("DRFX bundle installation successfully."));
                 }
@@ -725,7 +795,7 @@ void MainWindow::on_pbInstall_clicked()
 void MainWindow::onBuildError(DRFXBuilder *builder, const QString &message)
 {
     ui->pbBuildDRFX->setEnabled(true);
-    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
+    showError(message);
     builder->deleteLater();
 }
 
@@ -737,40 +807,28 @@ void MainWindow::onBuildStarted(DRFXBuilder *)
 void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 {
     ui->pbBuildDRFX->setEnabled(true);
-#ifdef Q_OS_MACOS
-    openFileBookmark(toFileUrl(fileName));
+#ifdef OSX_SANDBOXED_APP
+    setSandboxBookmark(toFileUrl(fileName));
 #endif
     setOutputName(fileName);
     checkOutputExist();
-    QMessageBox::information(this,
-                             qApp->applicationDisplayName(), //
-                             tr("Bundle file '%1' successfully built.").arg(fileName));
+    showInfo(tr("Bundle file '%1' successfully built.").arg(fileName));
     builder->deleteLater();
 }
 
-#ifdef Q_OS_MACOS
-inline bool MainWindow::initSecurityScopes()
+#ifdef OSX_SANDBOXED_APP
+// we try to get accsess to folders by resolving
+// security scoped URLs from the OS app sandbox.
+inline void MainWindow::initSecurityScopes()
 {
-    void *scope;
-    if (!(scope = openFileBookmark(toFileUrl(homePath())))) {
-        return false;
-    }
-    if (!(scope = openFileBookmark(toFileUrl(documentsPath())))) {
-        return false;
-    }
-    if (!(scope = openFileBookmark(toFileUrl(templatePath(m_appType))))) {
-        return false;
-    }
-    if (!(scope = openFileBookmark(toFileUrl(macroPath(m_appType))))) {
-        return false;
-    }
-    if (!(scope = openFileBookmark(toFileUrl(scriptPath(m_appType))))) {
-        return false;
-    }
-    if (!(scope = openFileBookmark(toFileUrl(QStringLiteral("/Volumes"))))) {
-        return false;
-    }
-    return true;
+    setSandboxBookmark(toFileUrl(homePath()));
+    setSandboxBookmark(toFileUrl(documentsPath()));
+    setSandboxBookmark(toFileUrl(templatePath(TAppType::ATDavinci)));
+    setSandboxBookmark(toFileUrl(macroPath(TAppType::ATDavinci)));
+    setSandboxBookmark(toFileUrl(scriptPath(TAppType::ATDavinci)));
+    setSandboxBookmark(toFileUrl(templatePath(TAppType::ATFusion)));
+    setSandboxBookmark(toFileUrl(macroPath(TAppType::ATFusion)));
+    setSandboxBookmark(toFileUrl(scriptPath(TAppType::ATFusion)));
 }
 #endif
 
@@ -796,22 +854,8 @@ inline void MainWindow::postInitUi()
         }
     }
 
-#ifdef Q_OS_MACOS
-    // sandbox bookmars
-    if (!initSecurityScopes()) {
-        qCritical("Unable to open sandbox security scopes. " //
-                  "Sorry! Limited directory and file access.");
-#if 0
-        QMessageBox::critical(this, //
-                              qApp->applicationDisplayName(),
-                              tr("Unable to open sandbox security scopes.\n" //
-                                 "Sorry! Limited directory and file access."));
-#endif
-    }
-#endif
-
     // restore bundle */
-    loadBundleStructure(m_projectFile.isEmpty() //
+    loadBundleStructure(m_projectFile.isEmpty()    //
                             ? bundleStuctureFile() //
                             : m_projectFile);
 
@@ -831,6 +875,21 @@ inline void MainWindow::postInitUi()
     m_isRunning = true;
 }
 
+inline void MainWindow::showError(const QString &message)
+{
+    QMessageBox::critical(this, qApp->applicationDisplayName(), message);
+}
+
+inline void MainWindow::showInfo(const QString &message)
+{
+    QMessageBox::information(this, qApp->applicationDisplayName(), message);
+}
+
+inline uint MainWindow::showQuestion(const QString &message)
+{
+    return QMessageBox::question(this, qApp->applicationDisplayName(), message);
+}
+
 inline void MainWindow::updateTargetInfo()
 {
     QString text = ui->cbBundleNode->currentText();
@@ -846,8 +905,8 @@ inline void MainWindow::updateTargetInfo()
 inline void MainWindow::checkOutputExist()
 {
     qDebug() << "[CHK-OUT]" << m_outputName;
-#ifdef Q_OS_MACOS
-    openFileBookmark(toFileUrl(m_outputName));
+#ifdef OSX_SANDBOXED_APP
+    setSandboxBookmark(toFileUrl(m_outputName));
 #endif
     if (QFile::exists(m_outputName)) {
         ui->pbImport->setDefault(false);
@@ -910,14 +969,14 @@ inline void MainWindow::checkBlackmagic()
                     case QMessageBox::Button::Yes: {
                         setMacroPath(macroPath(TAppType::ATDavinci));
                         setInstallPath(templatePath(TAppType::ATDavinci));
-                        setScriptPath(templatePath(TAppType::ATDavinci));
+                        setScriptPath(scriptPath(TAppType::ATDavinci));
                         setAppType(TAppType::ATDavinci);
                         break;
                     }
                     case QMessageBox::Button::No: {
                         setMacroPath(macroPath(TAppType::ATFusion));
                         setInstallPath(templatePath(TAppType::ATFusion));
-                        setScriptPath(templatePath(TAppType::ATFusion));
+                        setScriptPath(scriptPath(TAppType::ATFusion));
                         setAppType(TAppType::ATFusion);
                         break;
                     }
@@ -931,15 +990,26 @@ inline void MainWindow::checkBlackmagic()
             else if ((flags & TAppType::ATFusion) == TAppType::ATFusion) {
                 setMacroPath(macroPath(TAppType::ATFusion));
                 setInstallPath(templatePath(TAppType::ATFusion));
-                setScriptPath(templatePath(TAppType::ATFusion));
+                setScriptPath(scriptPath(TAppType::ATFusion));
                 setAppType(TAppType::ATFusion);
             }
             // davinci
             else if ((flags & TAppType::ATDavinci) == TAppType::ATDavinci) {
                 setMacroPath(macroPath(TAppType::ATDavinci));
                 setInstallPath(templatePath(TAppType::ATDavinci));
-                setScriptPath(templatePath(TAppType::ATDavinci));
+                setScriptPath(scriptPath(TAppType::ATDavinci));
                 setAppType(TAppType::ATDavinci);
+            } else {
+                int rc = showQuestion(tr("Thank you for purchasing the app. This app only works "  //
+                                         "if you have Blackmagic Design DaVinci Resolve (Studio) " //
+                                         "or Fusion (Studio) installed on your computer. Show "    //
+                                         "this message again?"));
+                if (rc == QMessageBox::No) {
+                    setMacroPath(documentsPath());
+                    setInstallPath(documentsPath());
+                    setScriptPath(documentsPath());
+                    m_appType = TAppType::ATDavinci;
+                }
             }
             postInitUi();
         });
@@ -994,6 +1064,63 @@ inline bool MainWindow::hasUserContent() const
 {
     return checkBundleContent(ui->tvBundleStruct->topLevelItem(0));
 }
+
+#ifdef OSX_SANDBOXED_APP
+inline bool MainWindow::checkBundleFileAccess(QTreeWidgetItem *node)
+{
+    for (int i = 0; i < node->childCount(); i++) {
+        QTreeWidgetItem *child = node->child(i);
+        if (child->childCount() > 0) {
+            if (!checkBundleFileAccess(child)) {
+                return false;
+            }
+        }
+
+        const QVariant data = child->data(0, Qt::UserRole);
+        if (data.isNull() || !data.isValid()) {
+            continue;
+        }
+        const TNodeData nd = data.value<TNodeData>();
+        if (nd.type == TNodeType::NTFileItem) {
+            if (!setSandboxBookmark(toFileUrl(nd.path))) {
+                QFileInfo fi(QDir::toNativeSeparators(nd.path));
+                if (showQuestion(tr("MacOS Sandbox require the permission to read the file:\n\n-> %1 <-\n\n"
+                                    "You must select the file in the file dialog to "
+                                    "confirm file access. Continue?").arg(fi.fileName())) == QMessageBox::No) {
+                    return false;
+                }
+                QFileDialog d(this);
+                connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) {
+                    qDebug("File selected: %s", qPrintable(file));
+                    setSandboxBookmark(toFileUrl(file));
+                });
+                connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) {
+                    qDebug("Directory entered: %s", qPrintable(directory));
+                    setSandboxBookmark(toFileUrl(directory));
+                });
+                d.setWindowTitle(tr("MacOS Sandbox File Permission"));
+                d.setWindowFilePath(fi.absoluteFilePath());
+                d.setAcceptMode(QFileDialog::AcceptMode::AcceptOpen);
+                d.setFileMode(QFileDialog::FileMode::ExistingFile);
+                d.setNameFilters(QStringList() << fi.fileName());
+                d.setDirectory(fi.absoluteFilePath());
+                d.setLabelText(QFileDialog::DialogLabel::FileName, tr("File name:"));
+                d.setLabelText(QFileDialog::DialogLabel::FileType, tr("Extension:"));
+                d.setOption(QFileDialog::Option::ReadOnly, true);
+                d.setOption(QFileDialog::Option::DontConfirmOverwrite, false);
+                d.setOption(QFileDialog::Option::DontUseNativeDialog, false);
+                d.setNameFilters(QStringList() << "*." + fi.suffix());
+                d.setDefaultSuffix("*." + fi.suffix());
+                if (d.exec() != QFileDialog::Accepted) {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    return true;
+}
+#endif
 
 inline bool MainWindow::checkBundleContent(QTreeWidgetItem *node) const
 {
@@ -1053,9 +1180,7 @@ inline void MainWindow::saveBundleStructure(const QString &fileName)
     QDir dir(fi.absolutePath());
     if (!dir.exists()) {
         if (!dir.mkpath(fi.absolutePath())) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Unable to create directory %1").arg(fi.absolutePath()));
+            showError(tr("Unable to create directory %1").arg(fi.absolutePath()));
             return;
         }
     }
@@ -1067,17 +1192,15 @@ inline void MainWindow::saveBundleStructure(const QString &fileName)
         const QJsonDocument jdoc(root);
         QFile f(fi.absoluteFilePath());
         if (!f.open(QFile::Truncate | QFile::WriteOnly)) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Unable to save bundle structure."));
+            showError(tr("Unable to save bundle structure."));
             return;
         }
         f.write(jdoc.toJson(QJsonDocument::Indented));
-        //f.write(jdoc.toJson(QJsonDocument::Compact));
+        // f.write(jdoc.toJson(QJsonDocument::Compact));
         f.flush();
         f.close();
-#ifdef Q_OS_MACOS
-        openFileBookmark(toFileUrl(f.fileName()));
+#ifdef OSX_SANDBOXED_APP
+        setSandboxBookmark(toFileUrl(f.fileName()));
 #endif
     }
 }
@@ -1111,9 +1234,7 @@ inline int MainWindow::addFileNode(QTreeWidgetItem *node, int errorBits, const Q
     QTreeWidgetItem *child;
 
     if (findNodeByHash(ui->tvBundleStruct->topLevelItem(0), data.hash)) {
-        QMessageBox::critical(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Object '%1' already exist.").arg(fname));
+        showError(tr("Object '%1' already exist.").arg(fname));
         return errorBits;
     } else {
         child = new QTreeWidgetItem(node, QTreeWidgetItem::Type);
@@ -1132,9 +1253,7 @@ inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
     int state = 0;
 
     if (root == ui->tvBundleStruct->topLevelItem(0)) {
-        QMessageBox::critical(this,
-                              qApp->applicationDisplayName(), //
-                              tr("Items below 'Edit' node are not allowed."));
+        showError(tr("Items below 'Edit' node are not allowed."));
     }
 
     _path += "/" + ui->edCompany->text();
@@ -1158,7 +1277,7 @@ inline void MainWindow::addToNode(const QString &path, QTreeWidgetItem *root)
         delete child;
         delete parent;
     } else {
-        ui->statusbar->showMessage(tr("Fusion added to bundle."), 5000);
+        ui->statusbar->showMessage(tr("Fusion added to bundle structure."), 5000);
     }
 
     const bool enable = hasUserContent();
@@ -1214,8 +1333,8 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
 
 inline bool MainWindow::loadBundleStructure(const QString &fileName)
 {
-#ifdef Q_OS_MACOS
-    openFileBookmark(toFileUrl(fileName));
+#ifdef OSX_SANDBOXED_APP
+    setSandboxBookmark(toFileUrl(fileName));
 #endif
 
     QFile f(fileName);
@@ -1228,9 +1347,7 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
     f.close();
 
     if (error.error != QJsonParseError::NoError) {
-        QMessageBox::critical(this, //
-                              qApp->applicationDisplayName(),
-                              error.errorString());
+        showError(error.errorString());
         return false;
     }
 
@@ -1239,9 +1356,7 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
 
     const QJsonObject jroot = jdoc.object();
     if (jroot.isEmpty()) {
-        QMessageBox::critical(this, //
-                              qApp->applicationDisplayName(),
-                              tr("Could not load bundle structure."));
+        showError(tr("Could not load bundle structure."));
         return false;
     }
 
@@ -1252,33 +1367,25 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
         const QJsonObject jo = jroot[key].toObject();
 
         if (!jo.contains("node.parent")) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Node parent missing in bundle file."));
+            showError(tr("Node parent missing in bundle file."));
             return false;
         }
         const QString nodeParent = jo["node.parent"].toString();
 
         if (!jo.contains("node.type")) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Node type missing in bundle file."));
+            showError(tr("Node type missing in bundle file."));
             return false;
         }
         const int nodeType = jo["node.type"].toInt();
 
         if (!jo.contains("data.name")) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Node name missing in bundle file."));
+            showError(tr("Node name missing in bundle file."));
             return false;
         }
         const QString nodeName = jo["data.name"].toString();
 
         if (!jo.contains("data.path")) {
-            QMessageBox::critical(this, //
-                                  qApp->applicationDisplayName(),
-                                  tr("Node path missing in bundle file."));
+            showError(tr("Node path missing in bundle file."));
             return false;
         }
         const QString nodePath = jo["data.path"].toString();
@@ -1302,22 +1409,18 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
             }
             case TNodeType::NTFileItem: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
-#ifdef Q_OS_MACOS
-                    openFileBookmark(toFileUrl(nodePath));
+#ifdef OSX_SANDBOXED_APP
+                    setSandboxBookmark(toFileUrl(nodePath));
 #endif
                     if (addFileNode(parent, 0x04, nodePath) != 0) {
-                        QMessageBox::critical(this,
-                                              qApp->applicationDisplayName(), //
-                                              tr("Object '%1' already exist.").arg(nodeName));
+                        showError(tr("Object '%1' already exist.").arg(nodeName));
                         return false;
                     }
                 }
                 break;
             }
             default: {
-                QMessageBox::critical(this, //
-                                      qApp->applicationDisplayName(),
-                                      tr("Invalid node type detected."));
+                showError(tr("Invalid node type detected."));
                 return false;
             }
         }
@@ -1487,7 +1590,7 @@ inline QString MainWindow::bundleOutputPath() const
 {
     QString path = QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::DocumentsLocation);
-    if (!path.contains("Container")) //QT & OSX-Sandbox sucks
+    if (!path.contains("Container")) // QT & OSX-Sandbox sucks
         return path;
     return homePath();
 }
@@ -1500,10 +1603,7 @@ inline QString MainWindow::bundleOutputPath() const
 inline QString MainWindow::homePath() const
 {
 #if defined(OSX_SANDBOXED_APP)
-    auto p = getpwuid(getuid());
-    QString home = QString(p->pw_dir);
-    qDebug() << "Home path:" << home;
-    return QDir::toNativeSeparators(home);
+    return QDir::toNativeSeparators(QString(getpwuid(getuid())->pw_dir));
 #else
     return QDir::toNativeSeparators(QStandardPaths::writableLocation( //
         QStandardPaths::StandardLocation::HomeLocation));

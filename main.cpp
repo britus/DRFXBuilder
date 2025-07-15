@@ -1,15 +1,15 @@
+#include "drfxsandbox.h"
 #include "drfxtypes.h"
 #include "mainwindow.h"
-#include "drfxsandbox.h"
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QLocale>
+#include <QMessageBox>
 #include <QProxyStyle>
 #include <QStyleFactory>
 #include <QTranslator>
-#include <QMessageBox>
 
 class DRFXApplication : public QApplication
 {
@@ -29,7 +29,7 @@ public:
         /* Override commandline style with our fixed GUI style type */
         /* macintosh, Windows, Fusion */
         QString styleName;
-        //qDebug() << QStyleFactory::keys();
+        // qDebug() << QStyleFactory::keys();
 #if defined(Q_OS_MACOS)
         styleName = "Fusion"; //"macOS";
 #elif defined(Q_OS_LINUX)
@@ -100,7 +100,7 @@ private:
     };
 
 private:
-    MainWindow* m_window;
+    MainWindow *m_window;
 };
 
 int main(int argc, char *argv[])
@@ -108,20 +108,13 @@ int main(int argc, char *argv[])
     /* Set specific QT debug message pattern */
     setenv("QT_MESSAGE_PATTERN", "%{time process} %{threadid} %{type} %{category} %{function} %{message}", 0);
 
-    /* Force Bluetooth LE HCI Kernel API */
-    setenv("BLUETOOTH_FORCE_DBUS_LE_VERSION", "4.00", 0);
-
-    /* Force Bluetooth LE DBus API */
-    // setenv("BLUETOOTH_FORCE_DBUS_LE_VERSION", "5.48", 0);
-    // setenv("BLUETOOTH_FORCE_DBUS_LE_VERSION", "5.76", 0);
-
     /* MacOSX bluetooth LE event dispatching */
     setenv("QT_EVENT_DISPATCHER_CORE_FOUNDATION", "1", 0);
     setenv("BT_TEST_DEVICE", "1", 0);
 
 #ifndef Q_OS_MACOS
-    /* QPA standard platform theme */
-    //setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
+    /* QPA standard platform theme for none Mac's */
+    setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
 #endif
 
 #ifdef _Q_OS_MACOS_disabled_
@@ -139,7 +132,8 @@ int main(int argc, char *argv[])
     DRFXApplication::setApplicationName(APP_TITLE);
 #ifdef Q_OS_MACOS
     DRFXApplication::setApplicationVersion(QStringLiteral( //
-            "%1.%2").arg(GetBundleVersion(), GetBuildNumber()));
+                                               "%1.%2")
+                                               .arg(GetBundleVersion(), GetBuildNumber()));
 #else
     DRFXApplication::setApplicationVersion(QStringLiteral("1.0.3.8"));
 #endif

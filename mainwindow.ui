@@ -175,7 +175,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Transisions</string>
+            <string>Transistions</string>
            </property>
            <property name="toolTip">
             <string>Place transisions bundles herein</string>
@@ -814,6 +814,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="txBundleFile">
+         <property name="text">
+          <string>Last bundle file:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="pnlButtonBottom" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
@@ -829,7 +836,7 @@
            <number>0</number>
           </property>
           <property name="topMargin">
-           <number>8</number>
+           <number>0</number>
           </property>
           <property name="rightMargin">
            <number>0</number>
@@ -837,13 +844,6 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item>
-           <widget class="QLabel" name="txBundleFile">
-            <property name="text">
-             <string>.</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
@@ -939,6 +939,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoadBundle"/>
     <addaction name="actionSaveBundle"/>
+    <addaction name="separator"/>
+    <addaction name="actionInstallButton"/>
    </widget>
    <addaction name="menuBundle"/>
   </widget>
@@ -949,7 +951,7 @@
   </widget>
   <action name="actionLoadBundle">
    <property name="text">
-    <string>Load from...</string>
+    <string>&amp;Load from...</string>
    </property>
    <property name="toolTip">
     <string>Load bundle from file.</string>
@@ -960,7 +962,7 @@
   </action>
   <action name="actionSaveBundle">
    <property name="text">
-    <string>Save to...</string>
+    <string>&amp;Save to...</string>
    </property>
    <property name="toolTip">
     <string>Save to bundle to file.</string>
@@ -971,13 +973,18 @@
   </action>
   <action name="actionNewBundle">
    <property name="text">
-    <string>New Bundle</string>
+    <string>&amp;New Bundle</string>
    </property>
    <property name="toolTip">
     <string>Reset the bundle structure</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionInstallButton">
+   <property name="text">
+    <string>&amp;Install Quick Access</string>
    </property>
   </action>
  </widget>
