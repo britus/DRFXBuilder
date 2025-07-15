@@ -918,13 +918,13 @@ inline void MainWindow::checkOutputExist()
 
 inline void MainWindow::checkBlackmagic()
 {
-    // check which installed Fusion or Davinci or both
+    // check which installed Fusion or DaVinci or both
     if (m_appType == 0) {
         QTimer::singleShot(10, this, [this] {
             const QIcon icon(":/assets/dfrxbuilder.iconset/icon_32x32.png");
             // Fusion app
             const QDir fusion(macroPath(TAppType::ATFusion));
-            // Davinci Resolve app
+            // DaVinci Resolve app
             const QDir davinci(macroPath(TAppType::ATDavinci));
 
             int flags = 0;
@@ -939,14 +939,14 @@ inline void MainWindow::checkBlackmagic()
             if ((flags & TAppType::ATBoth) == TAppType::ATBoth) {
                 QMessageBox mb(this);
                 mb.setTextFormat(Qt::TextFormat::PlainText);
-                mb.setText(tr("Davinci Resolve and Fusion found.\n" //
+                mb.setText(tr("DaVinci Resolve and Fusion found.\n" //
                               "Please select which one to use."));
                 mb.setIconPixmap(icon.pixmap(32, 32));
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                 mb.setStandardButtons(QMessageBox::Button::Yes | //
                                       QMessageBox::Button::No |  //
                                       QMessageBox::Button::Cancel);
-                mb.setButtonText(QMessageBox::Button::Yes, tr("Davinci Resolve"));
+                mb.setButtonText(QMessageBox::Button::Yes, tr("DaVinci Resolve"));
                 mb.setButtonText(QMessageBox::Button::No, tr("Fusion"));
                 mb.setButtonText(QMessageBox::Button::Cancel, tr("Close"));
 #else
@@ -1000,15 +1000,18 @@ inline void MainWindow::checkBlackmagic()
                 setScriptPath(scriptPath(TAppType::ATDavinci));
                 setAppType(TAppType::ATDavinci);
             } else {
-                int rc = showQuestion(tr("Thank you for purchasing the app. This app only works "  //
-                                         "if you have Blackmagic Design DaVinci Resolve (Studio) " //
-                                         "or Fusion (Studio) installed on your computer. Show "    //
-                                         "this message again?"));
+                int rc = showQuestion(tr(                                     //
+                    "Thank you for purchasing the app. This app only works "  //
+                    "if you have Blackmagic Design DaVinci Resolve (Studio) " //
+                    "or Fusion (Studio) installed on your computer. Show "    //
+                    "this message again?"));
                 if (rc == QMessageBox::No) {
                     setMacroPath(documentsPath());
                     setInstallPath(documentsPath());
                     setScriptPath(documentsPath());
                     m_appType = TAppType::ATDavinci;
+                } else {
+                    m_appType = TAppType::ATNone;
                 }
             }
             postInitUi();
@@ -1084,9 +1087,12 @@ inline bool MainWindow::checkBundleFileAccess(QTreeWidgetItem *node)
         if (nd.type == TNodeType::NTFileItem) {
             if (!setSandboxBookmark(toFileUrl(nd.path))) {
                 QFileInfo fi(QDir::toNativeSeparators(nd.path));
-                if (showQuestion(tr("MacOS Sandbox require the permission to read the file:\n\n-> %1 <-\n\n"
-                                    "You must select the file in the file dialog to "
-                                    "confirm file access. Continue?").arg(fi.fileName())) == QMessageBox::No) {
+                if (showQuestion(tr( //
+                                     "MacOS Sandbox require the permission to read the file:\n\n-> %1 <-\n\n"
+                                     "You must select the file in the file dialog to "
+                                     "confirm file access. Continue?")
+                                     .arg(fi.fileName()))
+                    == QMessageBox::No) {
                     return false;
                 }
                 QFileDialog d(this);
@@ -1117,7 +1123,7 @@ inline bool MainWindow::checkBundleFileAccess(QTreeWidgetItem *node)
             }
         }
     }
-    
+
     return true;
 }
 #endif
