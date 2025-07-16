@@ -22,9 +22,6 @@
 #define DAVINCI_SCRIPT_PATH "AppData/Roaming/Blackmagic Design/DaVinci Resolve/Support/Fusion/Scripts/Comp"
 #endif
 
-C:\Users\username\\Edit\Transitions
-
-
 #ifdef Q_OS_LINUX
 #define FUSION_MACRO_PATH ".local/share/Fusion/Macros"
 #define FUSION_TEMPLATE_PATH ".local/share/Fusion/Templates"
@@ -36,7 +33,7 @@ C:\Users\username\\Edit\Transitions
 #endif
 
 #ifndef APP_TITLE
-#define APP_TITLE QStringLiteral("EoF DRFX Builder")
+#define APP_TITLE QStringLiteral("EoF VFX Bundle Builder (.drfx)")
 #endif
 
 enum TAppType {
@@ -54,12 +51,12 @@ enum TNodeType {
     NTFileItem,
 };
 
-typedef struct
+typedef struct node_data
 {
-    TNodeType type;
-    QString hash;
-    QString path;
-    QString name;
+    TNodeType type = TNodeType::NTNone;
+    QString hash = "";
+    QString path = "";
+    QString name = "";
 } TNodeData;
 
 Q_DECLARE_METATYPE(TNodeType);

@@ -1601,10 +1601,12 @@ inline QString MainWindow::bundleOutputPath() const
     return homePath();
 }
 
+#if defined(OSX_SANDBOXED_APP) 
 #include <assert.h>
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif // OSX_SANDBOXED_APP) 
 
 inline QString MainWindow::homePath() const
 {

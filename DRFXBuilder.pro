@@ -1,12 +1,12 @@
 QT += core gui widgets
 
-win32:TEMPLATE = vcapp
+windows:TEMPLATE = vcapp
 else:TEMPLATE = app
 
 TARGET = DRFXBuilder
 
-win32:VERSION = 1.0.2.8 # major.minor.patch.build
-else:VERSION = 1.0.2    # major.minor.patch
+windows:VERSION = 1.0.3.20 # major.minor.patch.build
+else:VERSION = 1.0.3    # major.minor.patch
 
 # Defaults
 CONFIG += c++17
@@ -45,15 +45,26 @@ unix:debug {
 }
 
 # QZip support
+windows {
+	QMAKE_INCDIR += $$PWD/qzip/src/3rdparty/zlib
+	INCLUDEPATH += $$PWD/qzip/src/3rdparty/zlib
+	include($$PWD/qzip/src/3rdparty/zlib.pri)
+}
+
 INCLUDEPATH += $$PWD/qzip/src/compress
 
-QMAKE_INCDIR += /usr/local/include
-QMAKE_LIBDIR += /usr/local/lib
-QMAKE_LIBS += -lz
+SOURCES += \
+	$$PWD/qzip/src/compress/qzip.cpp
 
-#otool -L
-LIBS += -dead_strip
-LIBS += -liconv
+HEADERS += \
+	$$PWD/qzip/src/compress/qzipreader.h \
+	$$PWD/qzip/src/compress/qzipwriter.h
+
+unix{
+	QMAKE_INCDIR += /usr/local/include
+	QMAKE_LIBDIR += /usr/local/lib
+	QMAKE_LIBS += -lz
+}
 
 mac {
     lessThan(QT_MAJOR_VERSION, 6) {
@@ -77,6 +88,10 @@ mac {
     LICENSE.files = $$PWD/LICENSE
 	LICENSE.path = Contents/Resources
 	QMAKE_BUNDLE_DATA += LICENSE
+
+	#otool -L
+	LIBS += -dead_strip
+	LIBS += -liconv
 
     #translations_en.files = \
 	#	$$PWD/assets/en.lproj/InfoPlist.strings \
@@ -123,10 +138,7 @@ mac {
 
     QMAKE_CODE_SIGN_ENTITLEMENTS=$$PWD/DRFXBuilder_no_sandbox.entitlements
 	QMAKE_CODE_SIGN_IDENTITY='Mac Developer'
-}
 
-# Default rules for deployment.
-mac {
     target.path = /Applications
 	INSTALLS += target
 }

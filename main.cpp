@@ -105,6 +105,7 @@ private:
 
 int main(int argc, char *argv[])
 {
+#if defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
     /* Set specific QT debug message pattern */
     setenv("QT_MESSAGE_PATTERN", "%{time process} %{threadid} %{type} %{category} %{function} %{message}", 0);
 
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
 #ifndef Q_OS_MACOS
     /* QPA standard platform theme for none Mac's */
     setenv("QT_QPA_PLATFORMTHEME", "qt5ct", 0);
+#endif
 #endif
 
 #ifdef _Q_OS_MACOS_disabled_
@@ -130,12 +132,12 @@ int main(int argc, char *argv[])
     DRFXApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
     DRFXApplication::setApplicationDisplayName(APP_TITLE);
     DRFXApplication::setApplicationName(APP_TITLE);
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS)
     DRFXApplication::setApplicationVersion(QStringLiteral( //
                                                "%1.%2")
                                                .arg(GetBundleVersion(), GetBuildNumber()));
 #else
-    DRFXApplication::setApplicationVersion(QStringLiteral("1.0.3.8"));
+    DRFXApplication::setApplicationVersion(QStringLiteral("1.0.3.0"));
 #endif
     DRFXApplication a(argc, argv);
 
