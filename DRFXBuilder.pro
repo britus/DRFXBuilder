@@ -37,55 +37,54 @@ QMAKE_CXXFLAGS += -fno-omit-frame-pointer
 QMAKE_CXXFLAGS += -funwind-tables
 
 release {
-    #QMAKE_LFLAGS += -s
+	#QMAKE_LFLAGS += -s
 }
 
 unix:debug {
-    QMAKE_CXXFLAGS += -ggdb3
+	QMAKE_CXXFLAGS += -ggdb3
 }
 
 # QZip support
-windows {
+windows {
 	QMAKE_INCDIR += $$PWD/qzip/src/3rdparty/zlib
 	INCLUDEPATH += $$PWD/qzip/src/3rdparty/zlib
 	include($$PWD/qzip/src/3rdparty/zlib.pri)
+
+	SOURCES += \
+		$$PWD/qzip/src/compress/qzip.cpp
+
+	HEADERS += \
+		$$PWD/qzip/src/compress/qzipreader.h \
+		$$PWD/qzip/src/compress/qzipwriter.h
 }
 
-INCLUDEPATH += $$PWD/qzip/src/compress
-
-SOURCES += \
-	$$PWD/qzip/src/compress/qzip.cpp
-
-HEADERS += \
-	$$PWD/qzip/src/compress/qzipreader.h \
-	$$PWD/qzip/src/compress/qzipwriter.h
-
 unix{
+	INCLUDEPATH += $$PWD/qzip/src/compress
 	QMAKE_INCDIR += /usr/local/include
 	QMAKE_LIBDIR += /usr/local/lib
 	QMAKE_LIBS += -lz
 }
 
 mac {
-    lessThan(QT_MAJOR_VERSION, 6) {
-	    QT += macextras
+	lessThan(QT_MAJOR_VERSION, 6) {
+		QT += macextras
 	}
 
-    CONFIG += app_bundle
+	CONFIG += app_bundle
 	CONFIG += embed_libraries
 	CONFIG += embed_translations
 
-    QMAKE_CFLAGS += -mmacosx-version-min=12.2
+	QMAKE_CFLAGS += -mmacosx-version-min=12.2
 	QMAKE_CXXFLAGS += -mmacosx-version-min=12.2
 
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 12.2
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 12.2
 
-    # Important for the App with embedded frameworks and libs
+	# Important for the App with embedded frameworks and libs
 	QMAKE_RPATHDIR += @executable_path/../Frameworks
 	QMAKE_RPATHDIR += @executable_path/../Plugins
 	QMAKE_RPATHDIR += @executable_path/../lib
 
-    LICENSE.files = $$PWD/LICENSE
+	LICENSE.files = $$PWD/LICENSE
 	LICENSE.path = Contents/Resources
 	QMAKE_BUNDLE_DATA += LICENSE
 
@@ -93,20 +92,20 @@ mac {
 	LIBS += -dead_strip
 	LIBS += -liconv
 
-    #translations_en.files = \
+	#translations_en.files = \
 	#	$$PWD/assets/en.lproj/InfoPlist.strings \
 	#	$$PWD/vspui_en_US.qm
 	#translations_en.path = Contents/Resources/en.lproj
 	#QMAKE_BUNDLE_DATA += translations_en
 
-    #translations_de.files = \
+	#translations_de.files = \
 	#	$$PWD/assets/de.lproj/InfoPlist.strings \
 	#	$$PWD/vspui_de_DE.qm
 	#translations_de.path = Contents/Resources/de.lproj
 	#QMAKE_BUNDLE_DATA += translations_de
 
-    icons.files = \
-	    $$PWD/assets/icns/drfxbuilder_1024x1024.icns \
+	icons.files = \
+		$$PWD/assets/icns/drfxbuilder_1024x1024.icns \
 		$$PWD/assets/icns/drfxbuilder_128x128.icns \
 		$$PWD/assets/icns/drfxbuilder_16x16.icns \
 		$$PWD/assets/icns/drfxbuilder_256x256.icns \
@@ -128,45 +127,45 @@ mac {
 	icons.path = Contents/Resources/
 	QMAKE_BUNDLE_DATA += icons
 
-    QMAKE_INFO_PLIST += \
-	    $$PWD/Info.plist
+	QMAKE_INFO_PLIST += \
+		$$PWD/Info.plist
 
-    info_plist.files = \
-	    $$PWD/Info.plist
+	info_plist.files = \
+		$$PWD/Info.plist
 	info_plist.path = Contents/
 	QMAKE_BUNDLE_DATA += info_plist
 
-    QMAKE_CODE_SIGN_ENTITLEMENTS=$$PWD/DRFXBuilder_no_sandbox.entitlements
+	QMAKE_CODE_SIGN_ENTITLEMENTS=$$PWD/DRFXBuilder_no_sandbox.entitlements
 	QMAKE_CODE_SIGN_IDENTITY='Mac Developer'
 
-    target.path = /Applications
+	target.path = /Applications
 	INSTALLS += target
 }
 
 linux {
-    target.path = /usr/local/bin
+	target.path = /usr/local/bin
 	INSTALLS += target
 }
 
 windows {
-    target.path = $${HOME}
+	target.path = $${HOME}
 	INSTALLS += target
 }
 
 mac {
-    OBJECTIVE_SOURCES += $$PWD/drfxsandbox.mm
+	OBJECTIVE_SOURCES += $$PWD/drfxsandbox.mm
 	OBJECTIVE_HEADERS += $$PWD/drfxsandbox.h
 }
 
 SOURCES += \
-    $$PWD/drfxbuilder.cpp \
+	$$PWD/drfxbuilder.cpp \
 	$$PWD/main.cpp \
 	$$PWD/mainwindow.cpp \
 	$$PWD/qzip/src/compress/qzip.cpp \
 	$$PWD/drfxprogressdialog.cpp
 
 HEADERS += \
-    $$PWD/drfxbuilder.h \
+	$$PWD/drfxbuilder.h \
 	$$PWD/drfxtypes.h \
 	$$PWD/mainwindow.h \
 	$$PWD/qzip/src/compress/qtcompressglobal.h \
@@ -175,17 +174,17 @@ HEADERS += \
 	$$PWD/drfxprogressdialog.h
 
 FORMS += \
-    $$PWD/mainwindow.ui \
+	$$PWD/mainwindow.ui \
 	$$PWD/drfxprogressdialog.ui
 
 TRANSLATIONS += \
-    $$PWD/DRFXBuilder_en_US.ts
+	$$PWD/DRFXBuilder_en_US.ts
 
 RESOURCES += \
-    $$PWD/DRFXBuilder.qrc
+	$$PWD/DRFXBuilder.qrc
 
 DISTFILES += \
-    $$PWD/DRFXBuilder_no_sandbox.entitlements \
+	$$PWD/DRFXBuilder_no_sandbox.entitlements \
 	$$PWD/DRFXBuilder_sandbox.entitlements \
 	$$PWD/LICENSE \
 	$$PWD/README.md \
