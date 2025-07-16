@@ -2,7 +2,7 @@
 # NOTE!!! -> Paste the script into Xcode Build Phase - custom build script
 # Input files:
 # ---> ${SOURCE_ROOT}/../../Entitlements.plist
-# ---> ${SOURCE_ROOT}/../../Entitlements.plist
+# ---> ${SOURCE_ROOT}/../../DRFXBuilder.app.xcent 
 # Output files:
 #  LEAVE EMPTY
 echo "-------- PATCH WRONG ENTITLEMENTS ---------"
