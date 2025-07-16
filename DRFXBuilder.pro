@@ -14,7 +14,7 @@ CONFIG += sdk_no_version_check
 CONFIG += global_init_link_order
 CONFIG += incremental
 CONFIG += debug_and_release
-CONFIG += force_debug_info
+#CONFIG += force_debug_info
 
 # debug info in executable
 CONFIG -= separate_debug_info
@@ -50,12 +50,12 @@ windows {
 	INCLUDEPATH += $$PWD/qzip/src/3rdparty/zlib
 	include($$PWD/qzip/src/3rdparty/zlib.pri)
 
-	SOURCES += \
-		$$PWD/qzip/src/compress/qzip.cpp
+	#SOURCES += \
+	#	$$PWD/qzip/src/compress/qzip.cpp
 
-	HEADERS += \
-		$$PWD/qzip/src/compress/qzipreader.h \
-		$$PWD/qzip/src/compress/qzipwriter.h
+	#HEADERS += \
+	#	$$PWD/qzip/src/compress/qzipreader.h \
+	#	$$PWD/qzip/src/compress/qzipwriter.h
 }
 
 unix{
@@ -81,7 +81,7 @@ mac {
 
 	# Important for the App with embedded frameworks and libs
 	QMAKE_RPATHDIR += @executable_path/../Frameworks
-	QMAKE_RPATHDIR += @executable_path/../Plugins
+	QMAKE_RPATHDIR += @executable_path/../PlugIns
 	QMAKE_RPATHDIR += @executable_path/../lib
 
 	LICENSE.files = $$PWD/LICENSE
