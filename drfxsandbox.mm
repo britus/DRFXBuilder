@@ -35,7 +35,7 @@ const char* GetBuildNumber() {
 void* setSandboxBookmark(void* fileName)
 {
     NSString* _fileName = (NSString*) fileName;
-    if (_fileName) {
+    if (_fileName && _fileName.length > 0) {
         NSLog(@"[OS-SANDBOX] Request for resource access:\n%@", _fileName);
 
         @autoreleasepool {
