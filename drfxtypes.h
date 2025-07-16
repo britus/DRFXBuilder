@@ -13,13 +13,26 @@
 #endif
 
 #ifdef Q_OS_WINDOWS
-#define FUSION_MACRO_PATH "TODO"
-#define DAVINCI_MACRO_PATH "TODO"
+#define FUSION_MACRO_PATH "AppData/Roaming/Blackmagic Design/Fusion/Macros"
+#define FUSION_TEMPLATE_PATH "AppData/Roaming/Blackmagic Design/Fusion/Templates"
+#define FUSION_SCRIPT_PATH "AppData/Roaming/Blackmagic Design/Fusion/Scripts/Comp"
+
+#define DAVINCI_MACRO_PATH "AppData/Roaming/Blackmagic Design/DaVinci Resolve/Support/Fusion/Macros"
+#define DAVINCI_TEMPLATE_PATH "AppData/Roaming/Blackmagic Design/DaVinci Resolve/Support/Fusion/Templates"
+#define DAVINCI_SCRIPT_PATH "AppData/Roaming/Blackmagic Design/DaVinci Resolve/Support/Fusion/Scripts/Comp"
 #endif
 
+C:\Users\username\\Edit\Transitions
+
+
 #ifdef Q_OS_LINUX
-#define FUSION_MACRO_PATH "TODO"
-#define DAVINCI_MACRO_PATH "TODO"
+#define FUSION_MACRO_PATH ".local/share/Fusion/Macros"
+#define FUSION_TEMPLATE_PATH ".local/share/Fusion/Templates"
+#define FUSION_SCRIPT_PATH ".local/share/Fusion/Scripts/Comp"
+
+#define DAVINCI_MACRO_PATH ".local/share/DaVinciResolve/Fusion/Macros"
+#define DAVINCI_TEMPLATE_PATH ".local/share/DaVinciResolve/Fusion/Templates"
+#define DAVINCI_SCRIPT_PATH ".local/share/DaVinciResolve/Fusion/Scripts/Comp"
 #endif
 
 #ifndef APP_TITLE
