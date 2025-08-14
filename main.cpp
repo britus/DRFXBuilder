@@ -47,9 +47,10 @@ public:
 
         m_window = new MainWindow(projectFile);
         m_window->show();
-        int rc = QApplication::exec();
-        delete m_window;
 
+        int rc = QApplication::exec();
+
+        delete m_window;
         return rc;
     }
 
