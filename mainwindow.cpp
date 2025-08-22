@@ -33,7 +33,7 @@ Q_DECLARE_METATYPE(QTreeWidgetItem *);
 Q_DECLARE_METATYPE(QTableWidgetItem *);
 
 #ifdef OSX_SANDBOXED_APP
-inline static NSString *toFileUrl(const QString &path)
+inline static NSString *toNSFileUrl(const QString &path)
 {
     return QStringLiteral("file://%1").arg(path).toNSString();
 }
@@ -192,7 +192,7 @@ void MainWindow::on_actionInstallButton_triggered()
             return;
         }
 #ifdef OSX_SANDBOXED_APP
-        setSandboxBookmark(toFileUrl(outFileName));
+        setSandboxBookmark(toNSFileUrl(outFileName));
 #endif
         QFile fout(outFileName);
         if (!fout.open(QFile::WriteOnly | QFile::Truncate)) {
@@ -467,7 +467,7 @@ void MainWindow::on_pbLoadBundle_clicked()
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
 #ifdef OSX_SANDBOXED_APP
-        setSandboxBookmark(toFileUrl(file));
+        setSandboxBookmark(toNSFileUrl(file));
 #endif
         loadBundleStructure(file);
     });
@@ -530,7 +530,7 @@ void MainWindow::on_pbSelectMacro_clicked()
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
 #ifdef OSX_SANDBOXED_APP
-        setSandboxBookmark(toFileUrl(file));
+        setSandboxBookmark(toNSFileUrl(file));
 #endif
         on_edFusionMacro_textEdited(file);
         ui->edFusionMacro->setText(file);
@@ -562,7 +562,7 @@ void MainWindow::on_pbSelectIcon_clicked()
     connect(&d, &QFileDialog::fileSelected, this, [this](const QString &file) {
         qDebug("File selected: %s", qPrintable(file));
 #ifdef OSX_SANDBOXED_APP
-        setSandboxBookmark(toFileUrl(file));
+        setSandboxBookmark(toNSFileUrl(file));
 #endif
         on_edIconFile_textEdited(file);
         ui->edIconFile->setText(file);
@@ -783,7 +783,7 @@ void MainWindow::on_pbInstall_clicked()
             [instFi](DRFXProgressDialog *p) { //
                 if (!p->isError()) {
 #ifdef OSX_SANDBOXED_APP
-                    setSandboxBookmark(toFileUrl(instFi.absoluteFilePath()));
+                    setSandboxBookmark(toNSFileUrl(instFi.absoluteFilePath()));
 #endif
                     p->complete(tr("DRFX bundle installation successfully."));
                 }
@@ -808,7 +808,7 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 {
     ui->pbBuildDRFX->setEnabled(true);
 #ifdef OSX_SANDBOXED_APP
-    setSandboxBookmark(toFileUrl(fileName));
+    setSandboxBookmark(toNSFileUrl(fileName));
 #endif
     setOutputName(fileName);
     checkOutputExist();
@@ -821,14 +821,14 @@ void MainWindow::onBuildComplete(DRFXBuilder *builder, const QString &fileName)
 // security scoped URLs from the OS app sandbox.
 inline void MainWindow::initSecurityScopes()
 {
-    setSandboxBookmark(toFileUrl(homePath()));
-    setSandboxBookmark(toFileUrl(documentsPath()));
-    setSandboxBookmark(toFileUrl(templatePath(TAppType::ATDavinci)));
-    setSandboxBookmark(toFileUrl(macroPath(TAppType::ATDavinci)));
-    setSandboxBookmark(toFileUrl(scriptPath(TAppType::ATDavinci)));
-    setSandboxBookmark(toFileUrl(templatePath(TAppType::ATFusion)));
-    setSandboxBookmark(toFileUrl(macroPath(TAppType::ATFusion)));
-    setSandboxBookmark(toFileUrl(scriptPath(TAppType::ATFusion)));
+    setSandboxBookmark(toNSFileUrl(homePath()));
+    setSandboxBookmark(toNSFileUrl(documentsPath()));
+    setSandboxBookmark(toNSFileUrl(templatePath(TAppType::ATDavinci)));
+    setSandboxBookmark(toNSFileUrl(macroPath(TAppType::ATDavinci)));
+    setSandboxBookmark(toNSFileUrl(scriptPath(TAppType::ATDavinci)));
+    setSandboxBookmark(toNSFileUrl(templatePath(TAppType::ATFusion)));
+    setSandboxBookmark(toNSFileUrl(macroPath(TAppType::ATFusion)));
+    setSandboxBookmark(toNSFileUrl(scriptPath(TAppType::ATFusion)));
 }
 #endif
 
@@ -906,7 +906,7 @@ inline void MainWindow::checkOutputExist()
 {
     qDebug() << "[CHK-OUT]" << m_outputName;
 #ifdef OSX_SANDBOXED_APP
-    setSandboxBookmark(toFileUrl(m_outputName));
+    setSandboxBookmark(toNSFileUrl(m_outputName));
 #endif
     if (QFile::exists(m_outputName)) {
         ui->pbImport->setDefault(false);
@@ -1085,7 +1085,7 @@ inline bool MainWindow::checkBundleFileAccess(QTreeWidgetItem *node)
         }
         const TNodeData nd = data.value<TNodeData>();
         if (nd.type == TNodeType::NTFileItem) {
-            if (!setSandboxBookmark(toFileUrl(nd.path))) {
+            if (!setSandboxBookmark(toNSFileUrl(nd.path))) {
                 QFileInfo fi(QDir::toNativeSeparators(nd.path));
                 if (showQuestion(tr( //
                                      "MacOS Sandbox require the permission to read the file:\n\n-> %1 <-\n\n"
@@ -1098,11 +1098,11 @@ inline bool MainWindow::checkBundleFileAccess(QTreeWidgetItem *node)
                 QFileDialog d(this);
                 connect(&d, &QFileDialog::fileSelected, this, [](const QString &file) {
                     qDebug("File selected: %s", qPrintable(file));
-                    setSandboxBookmark(toFileUrl(file));
+                    setSandboxBookmark(toNSFileUrl(file));
                 });
                 connect(&d, &QFileDialog::directoryEntered, this, [](const QString &directory) {
                     qDebug("Directory entered: %s", qPrintable(directory));
-                    setSandboxBookmark(toFileUrl(directory));
+                    setSandboxBookmark(toNSFileUrl(directory));
                 });
                 d.setWindowTitle(tr("MacOS Sandbox File Permission"));
                 d.setWindowFilePath(fi.absoluteFilePath());
@@ -1206,7 +1206,7 @@ inline void MainWindow::saveBundleStructure(const QString &fileName)
         f.flush();
         f.close();
 #ifdef OSX_SANDBOXED_APP
-        setSandboxBookmark(toFileUrl(f.fileName()));
+        setSandboxBookmark(toNSFileUrl(f.fileName()));
 #endif
     }
 }
@@ -1340,7 +1340,7 @@ inline void MainWindow::bundleToJson(QJsonObject &json, QTreeWidgetItem *item)
 inline bool MainWindow::loadBundleStructure(const QString &fileName)
 {
 #ifdef OSX_SANDBOXED_APP
-    setSandboxBookmark(toFileUrl(fileName));
+    setSandboxBookmark(toNSFileUrl(fileName));
 #endif
 
     QFile f(fileName);
@@ -1416,7 +1416,7 @@ inline bool MainWindow::loadBundleStructure(const QString &fileName)
             case TNodeType::NTFileItem: {
                 if ((parent = findNodeByHash(root, nodeParent))) {
 #ifdef OSX_SANDBOXED_APP
-                    setSandboxBookmark(toFileUrl(nodePath));
+                    setSandboxBookmark(toNSFileUrl(nodePath));
 #endif
                     if (addFileNode(parent, 0x04, nodePath) != 0) {
                         showError(tr("Object '%1' already exist.").arg(nodeName));

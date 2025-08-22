@@ -38,6 +38,7 @@ private slots:
     void onBuildError(DRFXBuilder *builder, const QString &);
     void onBuildStarted(DRFXBuilder *builder);
     void onBuildComplete(DRFXBuilder *builder, const QString &);
+    void on_actionInstallButton_triggered();
     void on_tvBundleStruct_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
     void on_twNodeList_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
     void on_twNodeList_itemChanged(QTableWidgetItem *item);
@@ -62,8 +63,6 @@ private slots:
     void on_pbDelete_clicked();
     void on_pbBuildDRFX_clicked();
     void on_pbInstall_clicked();
-
-    void on_actionInstallButton_triggered();
 
 private:
     Ui::MainWindow *ui;

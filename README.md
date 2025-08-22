@@ -9,6 +9,7 @@ The project contains the user interface to create VFX bundle files for Blackmagi
 - QT framework and its dependencies.
 
 ```
+# Type a script or drag a script file from your workspace to insert its path.
 # This scriptlet is only for Xcode custom build script in Build Phase
 if [ "x${BUILT_PRODUCTS_DIR}" == "x" ] ; then
     echo "Paste the script into Xcode Build Phase - custom build script, or"
@@ -21,6 +22,8 @@ fi
 echo "--- INSTALL QT-PLUGINS ---"
 mkdir -p ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}
 cp -vR ${QTDIR}/PlugIns/* ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/
+# AppStore unsupported stuff
 rm -fR ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/permissions
+rm -fR ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/sqldrivers
 rm -fR ${BUILT_PRODUCTS_DIR}/${PLUGINS_FOLDER_PATH}/*/*.dSYM
 ```

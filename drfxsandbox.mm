@@ -36,7 +36,7 @@ void* setSandboxBookmark(void* fileName)
 {
     NSString* _fileName = (NSString*) fileName;
     if (_fileName && _fileName.length > 0) {
-        NSLog(@"[OS-SANDBOX] Request for resource access:\n%@", _fileName);
+        NSLog(@"[OS-SANDBOX] Request resource access:\n%@", _fileName);
 
         @autoreleasepool {
             NSURL *fileUrl = [NSURL URLWithString:_fileName];
@@ -46,18 +46,12 @@ void* setSandboxBookmark(void* fileName)
 
             // get the last bookmark for file name in user persistence data
             NSData* bookmark = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
-            if (bookmark) {
-                outUrl = [NSURL URLByResolvingBookmarkData:bookmark
-                                                   options:NSURLBookmarkResolutionWithSecurityScope
-                                             relativeToURL:nil
-                                       bookmarkDataIsStale:&isStale
-                                                     error:&error];
-            }
-            // require new bookmark from file URL?
-            if (!outUrl || !bookmark) {
+
+            // if nothing, create new bookmark with security scope
+            if (!bookmark) {
                 NSMutableArray *keys = [[NSMutableArray alloc] initWithCapacity:1];
                 [keys addObject: _fileName];
-                bookmark = [fileUrl bookmarkDataWithOptions:0
+                bookmark = [fileUrl bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope
                              includingResourceValuesForKeys:keys
                                               relativeToURL:nil
                                                       error:&error];
@@ -67,7 +61,17 @@ void* setSandboxBookmark(void* fileName)
                     return nil;
                 }
                 [keys release];
+            }
 
+            // try to resolve URL with security scope
+            outUrl = [NSURL URLByResolvingBookmarkData:bookmark
+                                               options:NSURLBookmarkResolutionWithSecurityScope
+                                         relativeToURL:nil
+                                   bookmarkDataIsStale:&isStale
+                                                 error:&error];
+
+            // if not, try to resolve default behavior
+            if (!outUrl) {
                 // Resolve bookmark to security scoped URL
                 outUrl = [NSURL URLByResolvingBookmarkData:bookmark
                                                    options:NSURLBookmarkResolutionWithoutUI
@@ -79,11 +83,13 @@ void* setSandboxBookmark(void* fileName)
                     return nil;
                 }
             }
+
             // notice
             if (isStale) {
                 NSLog(@"[OS-SANDBOX] Security scope bookmark is old. Please create a new one.");
             }
-            // obtain security scoped access
+
+            // try to gain security scoped access
             if ([outUrl startAccessingSecurityScopedResource]) {
                 NSLog(@"[OS-SANDBOX] Access grated.");
                 // Save to Sandbox bookmark trash bin - Happy claim nonsense storage space
